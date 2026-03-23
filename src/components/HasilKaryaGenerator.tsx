@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { PPMData } from '../services/pdfService';
 import { ArrowLeft, Palette, Plus, Trash2, Download, Sparkles, Loader2, Save, Image as ImageIcon, X, Clock } from 'lucide-react';
 import { motion } from 'motion/react';
-import { GoogleGenAI } from "@google/genai";
+import { generateText } from '../services/aiService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -73,10 +73,7 @@ export default function HasilKaryaGenerator({ onBack, ppmData }: HasilKaryaGener
     if (!studentName || !selectedImage || !description || !selectedActivity) return;
 
     setLoadingAI(true);
-      let analysis = '';
       try {
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-        
         const prompt = `
           Saya adalah guru TK. Saya ingin membuat analisis capaian perkembangan anak berdasarkan hasil karyanya.
           
@@ -94,46 +91,32 @@ export default function HasilKaryaGenerator({ onBack, ppmData }: HasilKaryaGener
           Jangan gunakan bullet points atau penomoran. Langsung deskripsi naratif.
         `;
 
-        const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: prompt
-        });
+        const analysis = await generateText(prompt);
 
-        analysis = response.text?.trim() || '';
-      } catch (error: any) {
-        // console.error('Error generating analysis:', error); // Silent console error
-        const errorMsg = error.message || JSON.stringify(error);
+        const newArtwork: Artwork = {
+          id: Date.now().toString(),
+          date: selectedDate,
+          time: selectedTime,
+          studentName,
+          imageUrl: selectedImage,
+          description,
+          analysis,
+          activity: selectedActivity
+        };
+
+        setArtworks([...artworks, newArtwork]);
         
-        if (errorMsg.includes('429') || errorMsg.includes('RESOURCE_EXHAUSTED') || errorMsg.includes('quota')) {
-          analysis = "Mohon maaf, kuota AI harian telah habis. Silakan isi analisis capaian perkembangan secara manual.";
-          alert('Kuota AI harian telah habis. Anda tetap bisa menyimpan data dengan mengisi analisis secara manual.');
-        } else {
-          alert('Gagal membuat analisis AI. Silakan coba lagi atau isi secara manual.');
-          setLoadingAI(false);
-          return;
-        }
+        // Reset form
+        setStudentName('');
+        setDescription('');
+        setSelectedImage(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+
+        setLoadingAI(false);
+      } catch (error: any) {
+        alert('Gagal membuat analisis AI. Silakan coba lagi atau isi secara manual.');
+        setLoadingAI(false);
       }
-
-      const newArtwork: Artwork = {
-        id: Date.now().toString(),
-        date: selectedDate,
-        time: selectedTime,
-        studentName,
-        imageUrl: selectedImage,
-        description,
-        analysis,
-        activity: selectedActivity
-      };
-
-      setArtworks([...artworks, newArtwork]);
-      
-      // Reset form
-      setStudentName('');
-      setDescription('');
-      setSelectedImage(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-
-      setLoadingAI(false);
     };
 
   const handleDeleteArtwork = (id: string) => {

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { PPMData } from '../services/pdfService';
 import { ArrowLeft, BookOpen, Plus, Trash2, Download, Sparkles, Loader2, Save, Users, CheckSquare } from 'lucide-react';
 import { motion } from 'motion/react';
-import { GoogleGenAI } from "@google/genai";
+import { generateJSON } from '../services/aiService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -105,7 +105,6 @@ export default function CeklisGenerator({ onBack, ppmData }: CeklisGeneratorProp
         ).join('\n');
       }
 
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const activities = getActivitiesForDay(selectedDay).join(', ');
       
       const prompt = `
@@ -130,17 +129,25 @@ export default function CeklisGenerator({ onBack, ppmData }: CeklisGeneratorProp
             "iktp": "Teks Indikator (poin-poin)"
           }
         ]
-        Pastikan output hanya JSON valid tanpa markdown.
+        Pastikan output hanya JSON valid.
       `;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-        config: { responseMimeType: 'application/json' }
-      });
+      const generatedData = await generateJSON(prompt);
 
-      const text = response.text?.trim() || '[]';
-      const generatedData = JSON.parse(text);
+      if (!Array.isArray(generatedData)) {
+        // Handle case where it's an object with an array property
+        const possibleArray = Object.values(generatedData).find(v => Array.isArray(v));
+        if (possibleArray) {
+          setAssessmentItems(possibleArray.map((item: any, index: number) => ({
+            id: Date.now().toString() + index,
+            objective: item.objective,
+            iktp: item.iktp,
+            ratings: {}
+          })));
+          return;
+        }
+        throw new Error("Invalid response format");
+      }
 
       const newItems: AssessmentItem[] = generatedData.map((item: any, index: number) => ({
         id: Date.now().toString() + index,

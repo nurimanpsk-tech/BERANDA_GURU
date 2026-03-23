@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { PPMData } from '../services/pdfService';
-import { GoogleGenAI } from "@google/genai";
+import { generateText } from '../services/aiService';
 
 interface FotoBerseriImage {
   data: string;
@@ -172,8 +172,6 @@ export default function FotoBerseriGenerator({ onBack, ppmData }: FotoBerseriGen
 
     setIsAiLoading(entryId);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-      
       const activityContext = entry.selectedActivity 
         ? `Kegiatan Spesifik yang didokumentasikan: ${entry.selectedActivity}`
         : `Kegiatan Inti dari PPM:\n${ppmData.pengalamanBelajar.kegiatanInti.map(k => `${k.hari}: ${k.kegiatan.join(', ')}`).join('\n')}`;
@@ -193,12 +191,8 @@ Deskripsi harus terdiri dari 3 poin utama yang menggambarkan proses:
 Gunakan bahasa yang profesional namun hangat, fokus pada kemampuan motorik dan keterlibatan anak.
 Format output: Langsung berikan 3 poin deskripsi menggunakan simbol bullet (•). Jangan berikan teks pembuka atau penutup.`;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
-      });
-
-      const generatedText = response.text || '';
+      const generatedText = await generateText(prompt);
+      
       // Add double spacing between bullet points for better readability
       const formattedText = generatedText.trim()
         .split('\n')

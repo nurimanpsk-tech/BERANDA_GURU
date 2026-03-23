@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { PPMData } from '../services/pdfService';
 import { ArrowLeft, BookOpen, Plus, Trash2, Download, Sparkles, Loader2, Save } from 'lucide-react';
 import { motion } from 'motion/react';
-import { GoogleGenAI } from "@google/genai";
+import { generateText } from '../services/aiService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -76,8 +76,6 @@ export default function AnekdotGenerator({ onBack, ppmData }: AnekdotGeneratorPr
     
     setLoading(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-      
       const prompt = `
         Buatkan deskripsi naratif untuk Catatan Anekdot anak TK (Usia 5-6 tahun).
         
@@ -94,12 +92,7 @@ export default function AnekdotGenerator({ onBack, ppmData }: AnekdotGeneratorPr
         - Jangan gunakan markdown atau bullet points. Hanya teks paragraf.
       `;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt
-      });
-      
-      const description = response.text?.trim() || '';
+      const description = await generateText(prompt);
       
       const dateDisplay = selectedDate 
         ? formatDate(selectedDate)
