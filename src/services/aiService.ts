@@ -125,3 +125,47 @@ export async function generatePPM(prompt: string, curriculumContext?: string) {
 
   throw lastError || new Error("Semua GITHUB_TOKENS gagal digunakan.");
 }
+
+export async function generateText(prompt: string) {
+  const model = "gpt-4o";
+  const endpoint = "https://models.inference.ai.azure.com/chat/completions";
+
+  if (GITHUB_TOKENS.length === 0) {
+    throw new Error("GITHUB_TOKENS tidak ditemukan di environment variables.");
+  }
+
+  let lastError: any = null;
+
+  for (const token of GITHUB_TOKENS) {
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token.trim()}`
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "user", content: prompt }
+          ],
+          temperature: 0.7,
+          max_tokens: 4096
+        })
+      });
+
+      if (!response.ok) {
+        if (response.status === 429) continue;
+        throw new Error(`GitHub Models API Error (${response.status})`);
+      }
+
+      const data = await response.json();
+      return data.choices?.[0]?.message?.content || "";
+    } catch (error) {
+      lastError = error;
+      continue;
+    }
+  }
+
+  throw lastError || new Error("Semua GITHUB_TOKENS gagal digunakan.");
+}

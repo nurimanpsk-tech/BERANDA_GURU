@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, Send, Copy, Check, Sparkles, Megaphone, Calendar, Clock, MapPin, Info } from 'lucide-react';
-import { GoogleGenAI } from "@google/genai";
+import { generateText } from '../services/aiService';
 
 interface AnnouncementGeneratorProps {
   onBack: () => void;
@@ -30,9 +30,6 @@ export default function AnnouncementGenerator({ onBack }: AnnouncementGeneratorP
     
     setLoading(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-      const model = "gemini-3-flash-preview";
-      
       const prompt = `
         Buatlah teks pengumuman untuk grup WhatsApp orang tua murid TK (Taman Kanak-Kanak).
         
@@ -53,12 +50,8 @@ export default function AnnouncementGenerator({ onBack }: AnnouncementGeneratorP
         - Jangan gunakan markdown tebal (seperti **) berlebihan, gunakan format yang didukung WhatsApp (seperti *teks* untuk tebal).
       `;
 
-      const response = await ai.models.generateContent({
-        model,
-        contents: prompt,
-      });
-
-      setGeneratedText(response.text || '');
+      const text = await generateText(prompt);
+      setGeneratedText(text || '');
     } catch (error) {
       console.error('Error generating announcement:', error);
       setGeneratedText('Maaf, terjadi kesalahan saat membuat pengumuman. Silakan coba lagi.');
