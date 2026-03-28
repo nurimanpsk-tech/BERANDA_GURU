@@ -65,14 +65,47 @@ export const generatePPMPDF = (data: PPMData) => {
   // 12pt gap after title (12pt ≈ 4.23mm)
   let currentY = 29 + 4.23;
   doc.setLineHeightFactor(1.15); // Reduced to 1.15 for more compact line spacing within cells
+  doc.setDrawColor(0);
+  doc.setLineWidth(0.3);
 
-  const getDayData = (dayName: string, type: 'penyambutan' | 'kegiatan') => {
+  const getDayData = (dayName: string, type: 'penyambutan' | 'kegiatan' | 'memahami') => {
     const day = data.pengalamanBelajar.jadwalHarian.find(j => j.hari.toLowerCase().includes(dayName.toLowerCase()));
     if (type === 'penyambutan') return day?.kegiatanPenyambutan || 'Penyambutan';
+    if (type === 'memahami') return day?.kegiatan || '-';
     
     const inti = data.pengalamanBelajar.kegiatanInti.find(k => k.hari.toLowerCase().includes(dayName.toLowerCase()));
     return inti?.kegiatan.map(k => `• ${k}`).join('\n') || '-';
   };
+
+  // Calculate max lines for Memahami table to reserve space
+  const colWidth = 45.4; // 227 / 5
+  const padding = 5; // 2.5 * 2
+  const innerWidth = colWidth - padding;
+  
+  let maxMemahamiLines = 0;
+  ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'].forEach(dayName => {
+    const text = getDayData(dayName, 'memahami');
+    const lines = doc.splitTextToSize(text, innerWidth).length;
+    if (lines > maxMemahamiLines) maxMemahamiLines = lines;
+  });
+
+  const fontSize = 10.5;
+  const lineHeight = (fontSize * 1.15) * 0.352778;
+  const initialOffset = (fontSize * 0.8) * 0.352778;
+
+  // Memahami text height
+  const memahamiText = [
+    'Memahami',
+    '',
+    ...data.pengalamanBelajar.memahami.map((m, i) => `       ${i + 1}. ${m}`),
+  ].join('\n');
+  const memahamiTextLines = doc.splitTextToSize(memahamiText, 227 - 5).length;
+  const memahamiTextHeight = (memahamiTextLines * lineHeight) + 2.4; // 1.2 * 2 padding
+
+  // Table height
+  const tableHeaderHeight = lineHeight + 1.6; // 0.8 * 2 padding
+  const tableDataHeight = (maxMemahamiLines * lineHeight) + 2.4; // 1.2 * 2 padding
+  const totalMemahamiHeight = memahamiTextHeight + tableHeaderHeight + tableDataHeight + 1; // 1mm gap after text
 
   const tableData: any[] = [
     // INFORMASI UMUM
@@ -90,12 +123,16 @@ export const generatePPMPDF = (data: PPMData) => {
       { content: 'ASESMEN AWAL', styles: { fontStyle: 'bold' as const, valign: 'middle' as const } },
       {
         colSpan: 5,
-        styledLabel: 'Instrumen asesmen',
-        content: '\n\n' + [
+        content: [
+          'Instrumen asesmen',
+          '',
           data.asesmenAwal.deskripsi,
           ...data.asesmenAwal.poinPoin.map((p) => `       -  ${p}`),
           ...data.asesmenAwal.instrumen.map((i) => `       -  ${i}`),
         ].join('\n'),
+        isMultiStyledLabel: true,
+        styles: { valign: 'top' as const },
+        styledLabels: [{ text: 'Instrumen asesmen', line: 0 }]
       },
     ],
     // IDENTIFIKASI
@@ -103,8 +140,14 @@ export const generatePPMPDF = (data: PPMData) => {
       { content: 'IDENTIFIKASI', styles: { fontStyle: 'bold' as const, valign: 'middle' as const } },
       {
         colSpan: 5,
-        styledLabel: 'Dimensi Profil Lulusan (Profil Pelajar Pancasila Anak Usia Dini)',
-        content: '\n\n' + data.identifikasi.dimensiProfilLulusan.map((d) => `       -  ${d}`).join('\n'),
+        content: [
+          'Dimensi Profil Lulusan (Profil Pelajar Pancasila Anak Usia Dini)',
+          '',
+          ...data.identifikasi.dimensiProfilLulusan.map((d) => `       -  ${d}`)
+        ].join('\n'),
+        isMultiStyledLabel: true,
+        styles: { valign: 'top' as const },
+        styledLabels: [{ text: 'Dimensi Profil Lulusan (Profil Pelajar Pancasila Anak Usia Dini)', line: 0 }]
       },
     ],
     // DESAIN PEMBELAJARAN (Simulated Merge)
@@ -117,39 +160,71 @@ export const generatePPMPDF = (data: PPMData) => {
       },
       {
         colSpan: 5,
-        styledLabel: 'Tujuan Pembelajaran',
-        content: '\n\n' + data.desainPembelajaran.tujuanPembelajaran.map((t) => `       -  ${t}`).join('\n'),
+        content: [
+          'Tujuan Pembelajaran',
+          '',
+          ...data.desainPembelajaran.tujuanPembelajaran.map((t) => `       -  ${t}`)
+        ].join('\n'),
+        isMultiStyledLabel: true,
+        styles: { valign: 'top' as const },
+        styledLabels: [{ text: 'Tujuan Pembelajaran', line: 0 }]
       },
     ],
     [
       { content: '', styles: { lineWidth: 0 }, isCustomMerged: true },
       {
         colSpan: 5,
-        styledLabel: 'Praktik Pedagogis',
-        content: '\n\n' + data.desainPembelajaran.praktikPedagogis.map((p) => `       -  ${p}`).join('\n'),
+        content: [
+          'Praktik Pedagogis',
+          '',
+          ...data.desainPembelajaran.praktikPedagogis.map((p) => `       -  ${p}`)
+        ].join('\n'),
+        isMultiStyledLabel: true,
+        styles: { valign: 'top' as const },
+        styledLabels: [{ text: 'Praktik Pedagogis', line: 0 }]
       },
     ],
     [
       { content: '', styles: { lineWidth: 0 }, isCustomMerged: true },
       {
         colSpan: 5,
-        styledLabel: 'Kemitraan Pembelajaran',
-        content: '\n\n' + [
+        content: [
+          'Kemitraan Pembelajaran',
+          '',
           '   Orang Tua',
+          '',
           ...data.desainPembelajaran.kemitraan.orangTua.map((o) => `       -  ${o}`),
-          '\n   Lingkungan Sekolah',
+          '',
+          '   Lingkungan Sekolah',
+          '',
           ...data.desainPembelajaran.kemitraan.lingkunganSekolah.map((l) => `       -  ${l}`),
-          '\n   Lingkungan Pembelajaran',
+          '',
+          '   Lingkungan Pembelajaran',
+          '',
           ...data.desainPembelajaran.kemitraan.lingkunganPembelajaran.map((lp) => `       -  ${lp}`),
         ].join('\n'),
+        isMultiStyledLabel: true,
+        styles: { valign: 'top' as const },
+        styledLabels: [
+          { text: 'Kemitraan Pembelajaran', line: 0 },
+          { text: '   Orang Tua', line: 2, isSubLabel: true },
+          { text: '   Lingkungan Sekolah', line: 4 + data.desainPembelajaran.kemitraan.orangTua.length + 1, isSubLabel: true },
+          { text: '   Lingkungan Pembelajaran', line: 4 + data.desainPembelajaran.kemitraan.orangTua.length + 1 + 3 + data.desainPembelajaran.kemitraan.lingkunganSekolah.length, isSubLabel: true }
+        ]
       },
     ],
     [
       { content: '', styles: { lineWidth: 0 }, isCustomMerged: true, isLast: true },
       {
         colSpan: 5,
-        styledLabel: 'Pemanfaatan Digital',
-        content: '\n\n' + data.desainPembelajaran.pemanfaatanDigital.map((pd) => `       -  ${pd}`).join('\n'),
+        content: [
+          'Pemanfaatan Digital',
+          '',
+          ...data.desainPembelajaran.pemanfaatanDigital.map((pd) => `       -  ${pd}`)
+        ].join('\n'),
+        isMultiStyledLabel: true,
+        styles: { valign: 'top' as const },
+        styledLabels: [{ text: 'Pemanfaatan Digital', line: 0 }]
       },
     ],
     // PENGALAMAN BELAJAR (Simulated Merge)
@@ -162,8 +237,14 @@ export const generatePPMPDF = (data: PPMData) => {
       },
       {
         colSpan: 5,
-        styledLabel: 'Penyambutan',
-        content: '\n\n' + data.pengalamanBelajar.penyambutan,
+        content: [
+          'Penyambutan',
+          '',
+          data.pengalamanBelajar.penyambutan
+        ].join('\n'),
+        isMultiStyledLabel: true,
+        styles: { valign: 'top' as const },
+        styledLabels: [{ text: 'Penyambutan', line: 0 }]
       },
     ],
     [
@@ -195,18 +276,27 @@ export const generatePPMPDF = (data: PPMData) => {
       {
         colSpan: 5,
         content: [
+          'Pembukaan',
           '',
-          '', // Spacer for Pembukaaan
           ...data.pengalamanBelajar.pembukaan.map((p) => `       -  ${p}`),
-          '',
-          '', // Spacer for Memahami
-          ...data.pengalamanBelajar.memahami.map((m, i) => `       ${i + 1}. ${m}`),
         ].join('\n'),
         isMultiStyledLabel: true,
+        styles: { valign: 'top' as const },
         styledLabels: [
-          { text: 'Pembukaaan', line: 1 },
-          { text: 'Memahami', line: 3 + data.pengalamanBelajar.pembukaan.length }
+          { text: 'Pembukaan', line: 0 },
         ]
+      },
+    ],
+    [
+      { content: '', styles: { lineWidth: 0 }, isCustomMerged: true },
+      {
+        colSpan: 5,
+        content: '', // Drawn manually in didDrawCell
+        isMemahamiSection: true,
+        styles: { minCellHeight: totalMemahamiHeight, valign: 'top' as const },
+        memahamiTextHeight,
+        tableHeaderHeight,
+        tableDataHeight
       },
     ],
     [
@@ -223,32 +313,35 @@ export const generatePPMPDF = (data: PPMData) => {
     ],
     [
       { content: '', styles: { lineWidth: 0 }, isCustomMerged: true },
-      { content: getDayData('Senin', 'kegiatan') },
-      { content: getDayData('Selasa', 'kegiatan') },
-      { content: getDayData('Rabu', 'kegiatan') },
-      { content: getDayData('Kamis', 'kegiatan') },
-      { content: getDayData('Jumat', 'kegiatan') },
+      { content: getDayData('Senin', 'kegiatan'), styles: { valign: 'top' as const, cellPadding: { top: 1.2, bottom: 1.2, left: 2.5, right: 2.5 } } },
+      { content: getDayData('Selasa', 'kegiatan'), styles: { valign: 'top' as const, cellPadding: { top: 1.2, bottom: 1.2, left: 2.5, right: 2.5 } } },
+      { content: getDayData('Rabu', 'kegiatan'), styles: { valign: 'top' as const, cellPadding: { top: 1.2, bottom: 1.2, left: 2.5, right: 2.5 } } },
+      { content: getDayData('Kamis', 'kegiatan'), styles: { valign: 'top' as const, cellPadding: { top: 1.2, bottom: 1.2, left: 2.5, right: 2.5 } } },
+      { content: getDayData('Jumat', 'kegiatan'), styles: { valign: 'top' as const, cellPadding: { top: 1.2, bottom: 1.2, left: 2.5, right: 2.5 } } },
     ],
     [
       { content: '', styles: { lineWidth: 0 }, isCustomMerged: true, isLast: true },
       {
         colSpan: 5,
         content: [
+          'Mengaplikasi',
           '',
-          '', // Spacer for Mengaplikasi
           ...data.pengalamanBelajar.mengaplikasi.map((a) => `       -  ${a}`),
           '',
-          '', // Spacer for Merefleksi
+          'Merefleksi',
+          '',
           ...data.pengalamanBelajar.merefleksi.map((r) => `       -  ${r}`),
           '',
-          '', // Spacer for Penutup
+          'Penutup',
+          '',
           `   ${data.pengalamanBelajar.penutup}`,
         ].join('\n'),
         isMultiStyledLabel: true,
+        styles: { valign: 'top' as const },
         styledLabels: [
-          { text: 'Mengaplikasi', line: 1 },
-          { text: 'Merefleksi', line: 3 + data.pengalamanBelajar.mengaplikasi.length },
-          { text: 'Penutup', line: 5 + data.pengalamanBelajar.mengaplikasi.length + data.pengalamanBelajar.merefleksi.length }
+          { text: 'Mengaplikasi', line: 0 },
+          { text: 'Merefleksi', line: 2 + data.pengalamanBelajar.mengaplikasi.length + 1 },
+          { text: 'Penutup', line: 2 + data.pengalamanBelajar.mengaplikasi.length + 1 + 2 + data.pengalamanBelajar.merefleksi.length + 1 }
         ]
       },
     ],
@@ -275,7 +368,7 @@ export const generatePPMPDF = (data: PPMData) => {
       cellPadding: { top: 1.2, bottom: 1.2, left: 2.5, right: 2.5 },
       valign: 'middle' as const,
       lineColor: [0, 0, 0],
-      lineWidth: 0.2, // Slightly thicker lines for a cleaner look
+      lineWidth: 0.3, // Standard thickness
       textColor: [0, 0, 0],
       overflow: 'linebreak',
     },
@@ -288,14 +381,21 @@ export const generatePPMPDF = (data: PPMData) => {
       5: { cellWidth: 45.4 },
     },
     margin: { top: 12, bottom: 12, left: 12, right: 12 },
+    rowPageBreak: 'avoid',
+    didParseCell: (data) => {
+      // Hide autotable text for cells we draw manually to avoid double drawing
+      // and prevent the need for clearing rectangles that can cause double borders
+      if (data.cell.raw && typeof data.cell.raw === 'object' && ('isMultiStyledLabel' in data.cell.raw)) {
+        data.cell.styles.textColor = [255, 255, 255];
+      }
+    },
     didDrawPage: (dataHook) => {
       // Draw continuous vertical borders for the first column on each page
       if (col0MinY !== 0) {
         doc.setDrawColor(0);
-        doc.setLineWidth(0.2);
-        // Vertical lines
+        doc.setLineWidth(0.3);
+        // Vertical lines - only left side, right side is handled by column 1
         doc.line(col0X, col0MinY, col0X, col0MaxY);
-        doc.line(col0X + col0Width, col0MinY, col0X + col0Width, col0MaxY);
         
         // Close the column at the bottom of the page if it's a page break
         // and at the top if it's a continuation
@@ -309,6 +409,10 @@ export const generatePPMPDF = (data: PPMData) => {
     didDrawCell: (dataHook) => {
       const { doc, cell, column } = dataHook;
       
+      // Ensure borders are black and standard thickness for any manual drawing
+      doc.setDrawColor(0);
+      doc.setLineWidth(0.3);
+
       // Track column 0 boundaries for manual border drawing to ensure continuity across page breaks
       if (dataHook.section === 'body' && column.index === 0) {
         if (col0MinY === 0 || cell.y < col0MinY) col0MinY = cell.y;
@@ -320,7 +424,7 @@ export const generatePPMPDF = (data: PPMData) => {
         if (cell.raw && typeof cell.raw === 'object' && ('isCustomMerged' in cell.raw)) {
           const raw = cell.raw as any;
           doc.setDrawColor(0);
-          doc.setLineWidth(0.2);
+          doc.setLineWidth(0.3);
           if (raw.isFirst) doc.line(cell.x, cell.y, cell.x + cell.width, cell.y);
           if (raw.isLast) doc.line(cell.x, cell.y + cell.height, cell.x + cell.width, cell.y + cell.height);
         }
@@ -356,15 +460,98 @@ export const generatePPMPDF = (data: PPMData) => {
       // Draw underline for headers
       if (dataHook.section === 'body' && dataHook.cell.raw && typeof dataHook.cell.raw === 'object' && ('isUnderlinedHeader' in dataHook.cell.raw)) {
         const { doc, cell } = dataHook;
+        const paddingLeft = 2.5;
+        const paddingTop = 1.2;
+        const fontSize = cell.styles.fontSize || 10.5;
+        const initialOffset = (fontSize * 0.8) * 0.352778;
+        
         doc.setFont('helvetica', 'bolditalic');
-        doc.setFontSize(cell.styles.fontSize || 10.5);
+        doc.setFontSize(fontSize);
         const text = cell.text.join(' ');
         const textWidth = doc.getTextWidth(text);
         doc.setDrawColor(0);
-        doc.setLineWidth(0.2);
-        // Use the exact padding defined in the cell styles
-        const paddingLeft = 2.5; 
-        doc.line(cell.x + paddingLeft, cell.y + cell.height - 1.5, cell.x + paddingLeft + textWidth, cell.y + cell.height - 1.5);
+        doc.setLineWidth(0.3);
+        // Draw underline closer to text
+        doc.line(cell.x + paddingLeft, cell.y + paddingTop + initialOffset + 1.0, cell.x + paddingLeft + textWidth, cell.y + paddingTop + initialOffset + 1.0);
+      }
+
+      // Draw Memahami section with its nested table
+      if (dataHook.section === 'body' && dataHook.cell.raw && typeof dataHook.cell.raw === 'object' && ('isMemahamiSection' in dataHook.cell.raw)) {
+        const raw = dataHook.cell.raw as any;
+        const { doc, cell } = dataHook;
+        const paddingLeft = 2.5;
+        const paddingTop = 1.2;
+        const fontSize = 10.5;
+        const lineHeight = (fontSize * 1.15) * 0.352778;
+        const initialOffset = (fontSize * 0.8) * 0.352778;
+
+        // 1. Draw "Memahami" text
+        doc.setFont('helvetica', 'bolditalic');
+        doc.setFontSize(fontSize);
+        doc.setTextColor(0, 0, 0);
+        doc.text('Memahami', cell.x + paddingLeft, cell.y + paddingTop + initialOffset);
+        
+        // Underline for "Memahami"
+        const headerWidth = doc.getTextWidth('Memahami');
+        doc.setDrawColor(0);
+        doc.setLineWidth(0.3);
+        doc.line(cell.x + paddingLeft, cell.y + paddingTop + initialOffset + 1.0, cell.x + paddingLeft + headerWidth, cell.y + paddingTop + initialOffset + 1.0);
+        
+        let currentY = cell.y + paddingTop + lineHeight + 2;
+        doc.setFont('helvetica', 'normal');
+        data.pengalamanBelajar.memahami.forEach((m, i) => {
+          const text = `       ${i + 1}. ${m}`;
+          const wrapped = doc.splitTextToSize(text, cell.width - paddingLeft * 2);
+          wrapped.forEach((line: string) => {
+            doc.text(line, cell.x + paddingLeft, currentY + initialOffset);
+            currentY += lineHeight;
+          });
+        });
+
+        // 2. Draw Table Headers (Senin-Jumat)
+        currentY = cell.y + raw.memahamiTextHeight + 1; // Start table after text section
+        const colWidth = cell.width / 5;
+        const days = ['SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT'];
+        const tableHeaderHeight = raw.tableHeaderHeight;
+        const tableDataHeight = raw.tableDataHeight;
+        
+        doc.setFont('helvetica', 'bold');
+        doc.setDrawColor(0);
+        doc.setLineWidth(0.3);
+
+        // Draw header backgrounds
+        days.forEach((day, i) => {
+          const x = cell.x + (i * colWidth);
+          doc.setFillColor(156, 195, 229); // #9CC3E5
+          doc.rect(x, currentY, colWidth, tableHeaderHeight, 'F');
+          doc.text(day, x + colWidth / 2, currentY + (tableHeaderHeight / 2) + (initialOffset / 2) - 0.5, { align: 'center' });
+        });
+
+        // Draw horizontal lines for the nested table
+        doc.line(cell.x, currentY, cell.x + cell.width, currentY); // Top of header
+        doc.line(cell.x, currentY + tableHeaderHeight, cell.x + cell.width, currentY + tableHeaderHeight); // Bottom of header / Top of data
+        doc.line(cell.x, currentY + tableHeaderHeight + tableDataHeight, cell.x + cell.width, currentY + tableHeaderHeight + tableDataHeight); // Bottom of data
+
+        // Draw vertical lines for the nested table
+        // Draw all vertical lines to ensure they are thick and consistent
+        for (let i = 0; i <= 5; i++) {
+          const x = cell.x + (i * colWidth);
+          doc.line(x, currentY, x, currentY + tableHeaderHeight + tableDataHeight);
+        }
+
+        // 3. Draw Table Data Text
+        currentY += tableHeaderHeight;
+        doc.setFont('helvetica', 'normal');
+        days.forEach((day, i) => {
+          const x = cell.x + (i * colWidth);
+          const text = getDayData(day, 'memahami');
+          const wrapped = doc.splitTextToSize(text, colWidth - 5);
+          let textY = currentY + 1.2 + initialOffset;
+          wrapped.forEach((line: string) => {
+            doc.text(line, x + 2.5, textY);
+            textY += lineHeight;
+          });
+        });
       }
 
       // Draw styled labels within cells
@@ -373,29 +560,54 @@ export const generatePPMPDF = (data: PPMData) => {
         const { doc, cell } = dataHook;
         const paddingLeft = 2.5;
         const paddingTop = 1.2;
-        const lineHeight = 5; // Approximate line height in mm
+        const fontSize = cell.styles.fontSize || 10.5;
+        const lineHeight = (fontSize * 1.15) * 0.352778;
+        const initialOffset = (fontSize * 0.8) * 0.352778;
 
-        if ('styledLabel' in raw) {
-          doc.setFont('helvetica', 'bolditalic');
-          doc.setFontSize(cell.styles.fontSize || 10.5);
-          const textWidth = doc.getTextWidth(raw.styledLabel);
-          const yPos = cell.y + paddingTop + 3.5; // Adjusted for first line
-          doc.text(raw.styledLabel, cell.x + paddingLeft, yPos);
-          doc.setDrawColor(0);
-          doc.setLineWidth(0.2);
-          doc.line(cell.x + paddingLeft, yPos + 0.5, cell.x + paddingLeft + textWidth, yPos + 0.5);
-        }
+        if ('styledLabel' in raw || ('isMultiStyledLabel' in raw && 'styledLabels' in raw)) {
+          const availableWidth = cell.width - (paddingLeft * 2);
+          const contentLines = (raw.content || '').split('\n');
+          let currentY = cell.y + paddingTop;
 
-        if ('isMultiStyledLabel' in raw && 'styledLabels' in raw) {
-          doc.setFont('helvetica', 'bolditalic');
-          doc.setFontSize(cell.styles.fontSize || 10.5);
-          raw.styledLabels.forEach((label: any) => {
-            const textWidth = doc.getTextWidth(label.text);
-            const yPos = cell.y + paddingTop + 3.5 + (label.line * lineHeight);
-            doc.text(label.text, cell.x + paddingLeft, yPos);
-            doc.setDrawColor(0);
-            doc.setLineWidth(0.2);
-            doc.line(cell.x + paddingLeft, yPos + 0.5, cell.x + paddingLeft + textWidth, yPos + 0.5);
+          doc.setTextColor(0, 0, 0); // Ensure text is black as autotable text was hidden with white
+          const styledLabelsMap = new Map();
+          if ('isMultiStyledLabel' in raw && 'styledLabels' in raw) {
+            raw.styledLabels.forEach((l: any) => styledLabelsMap.set(l.line, l));
+          } else if ('styledLabel' in raw) {
+            styledLabelsMap.set(0, { text: raw.styledLabel, isMain: true });
+          }
+
+          contentLines.forEach((lineText: string, index: number) => {
+            const styledLabel = styledLabelsMap.get(index);
+            
+            if (styledLabel) {
+              doc.setFont('helvetica', styledLabel.isSubLabel ? 'bold' : 'bolditalic');
+            } else {
+              doc.setFont('helvetica', 'normal');
+            }
+            doc.setFontSize(fontSize);
+
+            // Use splitTextToSize to handle wrapping
+            const wrappedLines = doc.splitTextToSize(lineText, availableWidth);
+            wrappedLines.forEach((wLine: string) => {
+              const yPos = currentY + initialOffset;
+              
+              // Safety check for NaN
+              if (!isNaN(yPos) && !isNaN(cell.x)) {
+                doc.text(wLine, cell.x + paddingLeft, yPos);
+                
+                // Underline for main labels
+                if (styledLabel && !styledLabel.isSubLabel && wLine.trim() !== '') {
+                  const textWidth = doc.getTextWidth(wLine);
+                  if (!isNaN(textWidth)) {
+                    doc.setDrawColor(0);
+                    doc.setLineWidth(0.3);
+                    doc.line(cell.x + paddingLeft, yPos + 1.0, cell.x + paddingLeft + textWidth, yPos + 1.0);
+                  }
+                }
+              }
+              currentY += lineHeight;
+            });
           });
         }
       }

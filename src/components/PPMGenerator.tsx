@@ -49,7 +49,7 @@ export default function PPMGenerator({ onBack, onGenerate, initialData }: PPMGen
         ).join('\n');
       }
 
-      const data = await generatePPM(prompt, curriculumContext);
+      const data = await generatePPM(prompt, curriculumContext, schoolInfo.hariTanggal);
       const fullData = {
         ...data,
         ...schoolInfo,

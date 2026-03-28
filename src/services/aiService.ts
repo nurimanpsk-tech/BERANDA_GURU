@@ -1,6 +1,6 @@
 const GITHUB_TOKENS = (process.env.GITHUB_TOKENS || "").split(/[,\s;]+/).filter(t => t.trim() !== "");
 
-export async function generatePPM(prompt: string, curriculumContext?: string) {
+export async function generatePPM(prompt: string, curriculumContext?: string, hariTanggal?: string) {
   const model = "gpt-4o";
   const endpoint = "https://models.inference.ai.azure.com/chat/completions";
 
@@ -15,8 +15,15 @@ export async function generatePPM(prompt: string, curriculumContext?: string) {
 
   PENTING:
   - Gunakan Bahasa Indonesia yang hangat dan edukatif.
+  - Gunakan nama hari dalam Bahasa Indonesia (Senin, Selasa, Rabu, Kamis, Jumat).
   - Pada 'jadwalHarian', kolom 'kegiatanPenyambutan' diisi dengan narasi singkat (contoh: "Menyambut anak dengan sapaan hangat dan senyum"), BUKAN jam/waktu.
   - Setiap bagian yang berupa daftar (array) seperti Tujuan Pembelajaran, Praktik Pedagogis, Kemitraan, Pemanfaatan Digital, Pembukaan, Memahami, Mengaplikasi, Merefleksi, dll, HARUS berisi tepat 3 poin/item (jangan kurang, jangan lebih).
+  - Pada bagian 'pengalamanBelajar' -> 'jadwalHarian' dan 'kegiatanInti', Anda HARUS membuat entri untuk SETIAP hari kerja yang disebutkan dalam 'informasiUmum' -> 'hariTanggal'. 
+  - Jika 'hariTanggal' menyebutkan 'Senin - Jumat', maka Anda WAJIB membuat 5 entri (Senin, Selasa, Rabu, Kamis, Jumat). 
+  - Jika 'hariTanggal' menyebutkan 'Senin - Kamis', maka Anda WAJIB membuat 4 entri (Senin, Selasa, Rabu, Kamis).
+  - Jika tidak disebutkan secara spesifik, default adalah 'Senin - Jumat' (5 hari).
+  - Jika pengguna memberikan contoh kegiatan spesifik untuk hari tertentu dalam prompt mereka, Anda WAJIB menyertakan kegiatan tersebut dan melengkapinya dengan kegiatan kreatif lainnya untuk hari-hari yang tersisa dalam rentang waktu tersebut agar jadwal tetap penuh dan konsisten.
+  - Setiap hari dalam 'kegiatanInti' HARUS memiliki 3 sampai 5 kegiatan yang bervariasi, kreatif, dan mendalam sesuai sub-tema.
   - Pada bagian 'identifikasi' -> 'dimensiProfilLulusan', HARUS berisi 4 sampai 5 dimensi. Sertakan contoh konkret dalam kurung untuk setiap dimensi yang HARUS selaras dan sesuai dengan 'kegiatanInti' yang Anda buat (contoh: jika ada kegiatan berkebun, maka "Mandiri (Bertanggung jawab merawat tanaman sendiri)").
   - Pastikan semua bagian terisi dengan detail namun tetap efisien agar proses cepat.
   - Anda HARUS memberikan output dalam format JSON murni sesuai skema yang diberikan.`;
@@ -68,6 +75,7 @@ export async function generatePPM(prompt: string, curriculumContext?: string) {
   }`;
 
   const userPrompt = `Buatkan Perencanaan Pembelajaran Mendalam (PPM) kurikulum merdeka PAUD untuk tema: ${prompt}.
+  Rentang waktu: ${hariTanggal || 'Senin - Jumat'}.
   
   ${schemaDescription}`;
 
