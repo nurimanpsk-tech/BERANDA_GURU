@@ -156,7 +156,7 @@ export default function App() {
     setCurrentPage('home');
     setReturnToAsesmen(false);
     setReturnToAbsensi(false);
-    setReturnToAdmin(isAdmin);
+    setReturnToAdmin(false);
     window.history.pushState({ page: 'home' }, '');
   };
 

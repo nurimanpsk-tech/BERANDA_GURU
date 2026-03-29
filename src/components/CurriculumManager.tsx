@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Trash2, Save, Database, FileSpreadsheet, Loader2 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { ArrowLeft, Plus, Trash2, Save, Database, FileSpreadsheet, Loader2, Sparkles, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { CurriculumEntry } from '../types';
 import { getSupabase } from '../services/supabaseClient';
 import { User } from '@supabase/supabase-js';
+import { generateJSON } from '../services/aiService';
 
 interface CurriculumManagerProps {
   onBack: () => void;
@@ -16,6 +17,9 @@ export default function CurriculumManager({ onBack, user }: CurriculumManagerPro
   const [saving, setSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importText, setImportText] = useState('');
+  const [importing, setImporting] = useState(false);
 
   const supabase = getSupabase();
 
@@ -150,6 +154,66 @@ export default function CurriculumManager({ onBack, user }: CurriculumManagerPro
     }
   };
 
+  const handleAIImport = async () => {
+    if (!importText.trim()) return;
+    setImporting(true);
+    setError(null);
+
+    try {
+      const prompt = `
+        Tugas Anda adalah mengekstrak data kurikulum dari teks mentah berikut.
+        Teks ini berasal dari dokumen Capaian Pembelajaran (CP) PAUD/TK.
+        
+        Ekstrak informasi berikut untuk setiap baris:
+        1. Elemen (Contoh: Nilai Agama dan Budi Pekerti, Jati Diri, Dasar-dasar Literasi, Matematika, Sains, Teknologi, Rekayasa, dan Seni)
+        2. Sub-Elemen (Jika ada, jika tidak kosongkan)
+        3. TP (Tujuan Pembelajaran)
+        4. ATP (Alur Tujuan Pembelajaran - Jika ada, jika tidak kosongkan)
+        5. Indikator (IKTP - Indikator Ketercapaian Tujuan Pembelajaran)
+
+        Teks Mentah:
+        ${importText}
+
+        Format Output JSON (Array of Objects):
+        [
+          {
+            "elemen": "...",
+            "subElemen": "...",
+            "tp": "...",
+            "atp": "...",
+            "indikator": "..."
+          }
+        ]
+        
+        PENTING: Berikan data yang lengkap dan akurat sesuai teks. Jika teks sangat panjang, ambil poin-poin utamanya.
+      `;
+
+      const result = await generateJSON(prompt);
+      
+      if (Array.isArray(result)) {
+        const newEntries: CurriculumEntry[] = result.map((item: any, index: number) => ({
+          id: 'ai-' + Date.now() + '-' + index,
+          elemen: item.elemen || '',
+          subElemen: item.subElemen || '',
+          tp: item.tp || '',
+          atp: item.atp || '',
+          indikator: item.indikator || ''
+        }));
+        
+        setEntries([...entries, ...newEntries]);
+        setShowImportModal(false);
+        setImportText('');
+      } else {
+        throw new Error("Format data AI tidak valid");
+      }
+    } catch (err) {
+      console.error('Error importing via AI:', err);
+      setError('Gagal memproses teks. Pastikan teks yang ditempel cukup jelas.');
+    } finally {
+      setImporting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F5F2ED] text-[#1A1A1A] font-sans p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
@@ -184,6 +248,13 @@ export default function CurriculumManager({ onBack, user }: CurriculumManagerPro
             >
               <Plus size={18} />
               Tambah Baris
+            </button>
+            <button
+              onClick={() => setShowImportModal(true)}
+              className="flex items-center gap-2 bg-indigo-50 border border-indigo-100 px-4 py-2 rounded-xl text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition-colors shadow-sm"
+            >
+              <Sparkles size={18} />
+              Impor via AI
             </button>
             {error && <span className="text-red-500 text-sm font-medium">{error}</span>}
           </div>
@@ -296,6 +367,72 @@ export default function CurriculumManager({ onBack, user }: CurriculumManagerPro
         <footer className="mt-12 text-center text-stone-400 text-xs font-medium uppercase tracking-widest">
           &copy; 2026 Curriculum Manager • Data tersimpan di Database Supabase
         </footer>
+
+        {/* Import Modal */}
+        <AnimatePresence>
+          {showImportModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-sm">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden"
+              >
+                <div className="p-6 border-b border-stone-100 flex justify-between items-center">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-indigo-100 rounded-xl text-indigo-600">
+                      <Sparkles size={20} />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-stone-800">Impor Data via AI</h3>
+                      <p className="text-xs text-stone-500">Tempel teks dari dokumen Word Anda di bawah ini.</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setShowImportModal(false)}
+                    className="p-2 hover:bg-stone-100 rounded-full transition-colors"
+                  >
+                    <X size={20} className="text-stone-400" />
+                  </button>
+                </div>
+                
+                <div className="p-6">
+                  <textarea
+                    value={importText}
+                    onChange={(e) => setImportText(e.target.value)}
+                    placeholder="Tempel teks Capaian Pembelajaran (CP) di sini..."
+                    className="w-full h-64 bg-stone-50 border border-stone-200 rounded-2xl p-4 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none"
+                  />
+                  <div className="mt-4 p-3 bg-amber-50 rounded-xl border border-amber-100 flex gap-3">
+                    <div className="text-amber-600 mt-0.5">
+                      <Database size={16} />
+                    </div>
+                    <p className="text-xs text-amber-800 leading-relaxed">
+                      <strong>Tips:</strong> Salin teks dari kolom Elemen, TP, dan Indikator di dokumen Word Anda. AI akan mencoba memetakan data tersebut ke dalam tabel secara otomatis.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-6 bg-stone-50 border-t border-stone-100 flex justify-end gap-3">
+                  <button
+                    onClick={() => setShowImportModal(false)}
+                    className="px-6 py-2 rounded-xl text-sm font-medium text-stone-600 hover:bg-stone-200 transition-colors"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={handleAIImport}
+                    disabled={importing || !importText.trim()}
+                    className="flex items-center gap-2 bg-indigo-600 text-white px-8 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20 disabled:opacity-50"
+                  >
+                    {importing ? <Loader2 className="animate-spin" size={18} /> : <Sparkles size={18} />}
+                    {importing ? 'Memproses...' : 'Proses dengan AI'}
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
