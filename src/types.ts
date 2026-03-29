@@ -1,5 +1,6 @@
 export interface CurriculumEntry {
   id: string;
+  user_id?: string;
   elemen: string;
   subElemen: string;
   tp: string;

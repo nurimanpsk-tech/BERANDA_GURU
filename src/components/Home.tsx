@@ -32,7 +32,7 @@ export default function Home({
   const adminItems = [
     {
       id: 'curriculum',
-      title: 'Bank Kurikulum',
+      title: 'Kelola Capaian Pembelajaran',
       description: 'Input daftar TP dan IKTP dari Pengawas untuk referensi AI.',
       icon: <Database size={28} className="text-indigo-600" />,
       color: 'bg-indigo-50 hover:bg-indigo-100 border-indigo-200',
@@ -125,7 +125,7 @@ export default function Home({
     ? [
         {
           id: 'curriculum',
-          title: 'Bank Kurikulum',
+          title: 'Kelola Capaian Pembelajaran',
           description: 'Input daftar TP dan IKTP dari Pengawas untuk referensi AI.',
           icon: <Database size={32} className="text-indigo-600" />,
           color: 'bg-indigo-50 hover:bg-indigo-100 border-indigo-200',
@@ -238,7 +238,7 @@ export default function Home({
             >
               <span className="flex items-center gap-2">
                 <Sparkles size={14} />
-                GuruPintar - Platform Administrasi Terpadu
+                Administrasi Sekolah - Platform Administrasi Terpadu
               </span>
             </motion.div>
             <h1 className="text-4xl md:text-6xl font-serif font-light mb-6 tracking-tight">

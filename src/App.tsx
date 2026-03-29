@@ -272,7 +272,7 @@ export default function App() {
         />
       )}
       {currentPage === 'curriculum' && (
-        <CurriculumManager onBack={navigateBackToAdmin} />
+        <CurriculumManager onBack={navigateBackToAdmin} user={user} />
       )}
       {currentPage === 'ppm' && (
         <PPMMenu 

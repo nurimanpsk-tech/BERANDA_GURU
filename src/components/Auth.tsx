@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { getSupabase } from '../services/supabaseClient';
 import { motion, AnimatePresence } from 'motion/react';
-import { Mail, Lock, User, ArrowRight, Loader2, Sparkles, GraduationCap } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Loader2, Sparkles, GraduationCap, Eye, EyeOff } from 'lucide-react';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -11,6 +11,7 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const supabase = getSupabase();
 
@@ -47,7 +48,11 @@ export default function Auth() {
         setMessage('Pendaftaran berhasil! Silakan cek email Anda untuk verifikasi (jika diaktifkan).');
       }
     } catch (err: any) {
-      setError(err.message || 'Terjadi kesalahan saat otentikasi');
+      if (err.message === 'Invalid login credentials') {
+        setError('Email atau kata sandi salah. Jika Anda belum punya akun, silakan klik "Daftar" di atas atau di bawah.');
+      } else {
+        setError(err.message || 'Terjadi kesalahan saat otentikasi');
+      }
     } finally {
       setLoading(false);
     }
@@ -64,7 +69,7 @@ export default function Auth() {
           >
             <GraduationCap size={32} />
           </motion.div>
-          <h1 className="text-3xl font-serif font-bold text-stone-800">GuruPintar</h1>
+          <h1 className="text-3xl font-serif font-bold text-stone-800">Administrasi Sekolah</h1>
           <p className="text-stone-500 mt-2">Platform Administrasi & Asesmen Terpadu</p>
         </div>
 
@@ -139,19 +144,38 @@ export default function Auth() {
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl py-3 pl-10 pr-12 outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
                     placeholder="••••••••"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors p-1"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
               </div>
 
               {error && (
-                <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100">
-                  {error}
+                <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 flex flex-col gap-2">
+                  <span>{error}</span>
+                  {error.includes('Daftar') && isLogin && (
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        setIsLogin(false);
+                        setError(null);
+                      }}
+                      className="text-xs font-bold underline text-left hover:text-red-800 transition-colors"
+                    >
+                      Daftar Akun Baru Sekarang →
+                    </button>
+                  )}
                 </div>
               )}
 

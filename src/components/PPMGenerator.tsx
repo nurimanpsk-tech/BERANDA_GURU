@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
+import { getSupabase } from '../services/supabaseClient';
 import { generatePPM } from '../services/aiService';
 import { generatePPMPDF, PPMData } from '../services/pdfService';
 import { ppmService } from '../services/ppmService';
@@ -53,17 +54,25 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
+    const supabase = getSupabase();
+    if (!supabase) return;
+
     setLoading(true);
     setError(null);
     try {
-      // Fetch curriculum context from localStorage
-      const savedCurriculum = localStorage.getItem('bank_kurikulum');
+      // Fetch curriculum context from Supabase
       let curriculumContext = '';
-      if (savedCurriculum) {
-        const entries = JSON.parse(savedCurriculum);
-        curriculumContext = entries.map((e: any) => 
-          `Elemen: ${e.elemen}, Sub-Elemen: ${e.subElemen}, TP: ${e.tp}, ATP: ${e.atp}, Indikator: ${e.indikator}`
-        ).join('\n');
+      if (user) {
+        const { data: curriculumData, error: curriculumError } = await supabase
+          .from('curriculum_entries')
+          .select('*')
+          .eq('user_id', user.id);
+        
+        if (!curriculumError && curriculumData && curriculumData.length > 0) {
+          curriculumContext = curriculumData.map((e: any) => 
+            `Elemen: ${e.elemen}, Sub-Elemen: ${e.sub_elemen}, TP: ${e.tp}, ATP: ${e.atp}, Indikator: ${e.indikator}`
+          ).join('\n');
+        }
       }
 
       const data = await generatePPM(prompt, curriculumContext, schoolInfo.hariTanggal);

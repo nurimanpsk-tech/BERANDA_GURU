@@ -6,6 +6,7 @@ import { generateJSON } from '../services/aiService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { User } from '@supabase/supabase-js';
+import { getSupabase } from '../services/supabaseClient';
 import PPMWeekSelector from './PPMWeekSelector';
 
 interface CeklisGeneratorProps {
@@ -97,16 +98,24 @@ export default function CeklisGenerator({ onBack, ppmData: initialPpmData, user 
   const generateIKTP = async () => {
     if (selectedObjectives.length === 0) return;
     
+    const supabase = getSupabase();
+    if (!supabase) return;
+
     setLoadingAI(true);
     try {
-      // Fetch curriculum context from localStorage
-      const savedCurriculum = localStorage.getItem('bank_kurikulum');
+      // Fetch curriculum context from Supabase
       let curriculumContext = '';
-      if (savedCurriculum) {
-        const entries = JSON.parse(savedCurriculum);
-        curriculumContext = entries.map((e: any) => 
-          `TP: ${e.tp}, Indikator: ${e.indikator}`
-        ).join('\n');
+      if (user) {
+        const { data: curriculumData, error: curriculumError } = await supabase
+          .from('curriculum_entries')
+          .select('*')
+          .eq('user_id', user.id);
+        
+        if (!curriculumError && curriculumData && curriculumData.length > 0) {
+          curriculumContext = curriculumData.map((e: any) => 
+            `TP: ${e.tp}, Indikator: ${e.indikator}`
+          ).join('\n');
+        }
       }
 
       const activities = getActivitiesForDay(selectedDay).join(', ');
