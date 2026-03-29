@@ -135,37 +135,43 @@ export default function CeklisGenerator({ onBack, ppmData: initialPpmData, user 
         Untuk SETIAP Tujuan Pembelajaran di atas, buatkan 1-2 Indikator Ketercapaian Tujuan Pembelajaran (IKTP) yang spesifik, terukur, dan relevan dengan kegiatan hari ini. 
         PENTING: Jika Tujuan Pembelajaran yang dipilih ada di dalam REFERENSI KURIKULUM RESMI, gunakan Indikator yang sudah ada di sana. Jika tidak ada, buatkan yang selaras dengan standar tersebut.
         
-        Format Output JSON (Array of Objects):
-        [
-          {
-            "objective": "Teks Tujuan Pembelajaran Asli",
-            "iktp": "Teks Indikator (poin-poin)"
-          }
-        ]
+        Format Output JSON (WAJIB berupa objek dengan key "data"):
+        {
+          "data": [
+            {
+              "objective": "Teks Tujuan Pembelajaran Asli",
+              "iktp": "Teks Indikator (poin-poin)"
+            }
+          ]
+        }
         Pastikan output hanya JSON valid.
       `;
 
       const generatedData = await generateJSON(prompt);
 
-      if (!Array.isArray(generatedData)) {
-        // Handle case where it's an object with an array property
+      let dataArray = [];
+      if (Array.isArray(generatedData)) {
+        dataArray = generatedData;
+      } else if (generatedData && typeof generatedData === 'object' && Array.isArray(generatedData.data)) {
+        dataArray = generatedData.data;
+      } else if (generatedData && typeof generatedData === 'object' && Array.isArray(generatedData.iktp)) {
+        dataArray = generatedData.iktp;
+      } else if (generatedData && typeof generatedData === 'object') {
+        // Try to find any array in the object
         const possibleArray = Object.values(generatedData).find(v => Array.isArray(v));
         if (possibleArray) {
-          setAssessmentItems(possibleArray.map((item: any, index: number) => ({
-            id: Date.now().toString() + index,
-            objective: item.objective,
-            iktp: item.iktp,
-            ratings: {}
-          })));
-          return;
+          dataArray = possibleArray as any[];
         }
-        throw new Error("Invalid response format");
       }
 
-      const newItems: AssessmentItem[] = generatedData.map((item: any, index: number) => ({
+      if (dataArray.length === 0) {
+        throw new Error("Format data AI tidak valid atau tidak ditemukan data indikator.");
+      }
+
+      const newItems: AssessmentItem[] = dataArray.map((item: any, index: number) => ({
         id: Date.now().toString() + index,
-        objective: item.objective,
-        iktp: item.iktp,
+        objective: item.objective || '',
+        iktp: item.iktp || '',
         ratings: {} // Empty ratings initially
       }));
 

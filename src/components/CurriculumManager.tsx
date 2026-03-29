@@ -174,24 +174,41 @@ export default function CurriculumManager({ onBack, user }: CurriculumManagerPro
         Teks Mentah:
         ${importText}
 
-        Format Output JSON (Array of Objects):
-        [
-          {
-            "elemen": "...",
-            "subElemen": "...",
-            "tp": "...",
-            "atp": "...",
-            "indikator": "..."
-          }
-        ]
+        Format Output JSON (WAJIB berupa objek dengan key "kurikulum"):
+        {
+          "kurikulum": [
+            {
+              "elemen": "...",
+              "subElemen": "...",
+              "tp": "...",
+              "atp": "...",
+              "indikator": "..."
+            }
+          ]
+        }
         
         PENTING: Berikan data yang lengkap dan akurat sesuai teks. Jika teks sangat panjang, ambil poin-poin utamanya.
       `;
 
       const result = await generateJSON(prompt);
       
+      let dataArray = [];
       if (Array.isArray(result)) {
-        const newEntries: CurriculumEntry[] = result.map((item: any, index: number) => ({
+        dataArray = result;
+      } else if (result && typeof result === 'object' && Array.isArray(result.kurikulum)) {
+        dataArray = result.kurikulum;
+      } else if (result && typeof result === 'object' && Array.isArray(result.data)) {
+        dataArray = result.data;
+      } else if (result && typeof result === 'object') {
+        // Try to find any array in the object
+        const firstArrayKey = Object.keys(result).find(key => Array.isArray(result[key]));
+        if (firstArrayKey) {
+          dataArray = result[firstArrayKey];
+        }
+      }
+
+      if (dataArray.length > 0) {
+        const newEntries: CurriculumEntry[] = dataArray.map((item: any, index: number) => ({
           id: 'ai-' + Date.now() + '-' + index,
           elemen: item.elemen || '',
           subElemen: item.subElemen || '',
@@ -204,7 +221,7 @@ export default function CurriculumManager({ onBack, user }: CurriculumManagerPro
         setShowImportModal(false);
         setImportText('');
       } else {
-        throw new Error("Format data AI tidak valid");
+        throw new Error("Format data AI tidak valid atau tidak ditemukan data kurikulum.");
       }
     } catch (err) {
       console.error('Error importing via AI:', err);
