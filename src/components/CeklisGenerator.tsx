@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { PPMData } from '../services/pdfService';
-import { ArrowLeft, BookOpen, Plus, Trash2, Download, Sparkles, Loader2, Save, Users, CheckSquare } from 'lucide-react';
+import { ArrowLeft, BookOpen, Plus, Trash2, Download, Sparkles, Loader2, Save, Users, CheckSquare, Calendar } from 'lucide-react';
 import { motion } from 'motion/react';
 import { generateJSON } from '../services/aiService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { User } from '@supabase/supabase-js';
+import PPMWeekSelector from './PPMWeekSelector';
 
 interface CeklisGeneratorProps {
   onBack: () => void;
   ppmData: PPMData;
+  user: User | null;
 }
 
 interface Student {
@@ -23,8 +26,9 @@ interface AssessmentItem {
   ratings: Record<string, string>; // studentId -> Rating (BB, MB, BSH, BSB)
 }
 
-export default function CeklisGenerator({ onBack, ppmData }: CeklisGeneratorProps) {
+export default function CeklisGenerator({ onBack, ppmData: initialPpmData, user }: CeklisGeneratorProps) {
   // State
+  const [ppmData, setPpmData] = useState<PPMData>(initialPpmData);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedDay, setSelectedDay] = useState<string>('Senin');
   const [students, setStudents] = useState<Student[]>([
@@ -325,6 +329,10 @@ export default function CeklisGenerator({ onBack, ppmData }: CeklisGeneratorProp
             Ceklis Capaian Perkembangan
           </h1>
         </header>
+
+        <div className="mb-8 max-w-md mx-auto">
+          <PPMWeekSelector currentPpm={ppmData} onSelect={setPpmData} user={user} />
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           

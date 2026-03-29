@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { PPMData } from '../services/pdfService';
-import { ArrowLeft, BookOpen, Plus, Trash2, Download, Sparkles, Loader2, Save } from 'lucide-react';
+import { ArrowLeft, BookOpen, Plus, Trash2, Download, Sparkles, Loader2, Save, Calendar } from 'lucide-react';
 import { motion } from 'motion/react';
 import { generateText } from '../services/aiService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { User } from '@supabase/supabase-js';
+import PPMWeekSelector from './PPMWeekSelector';
 
 interface AnekdotGeneratorProps {
   onBack: () => void;
   ppmData: PPMData;
+  user: User | null;
 }
 
 interface AnecdoteItem {
@@ -21,7 +24,8 @@ interface AnecdoteItem {
   description: string; // AI Generated
 }
 
-export default function AnekdotGenerator({ onBack, ppmData }: AnekdotGeneratorProps) {
+export default function AnekdotGenerator({ onBack, ppmData: initialPpmData, user }: AnekdotGeneratorProps) {
+  const [ppmData, setPpmData] = useState<PPMData>(initialPpmData);
   const [items, setItems] = useState<AnecdoteItem[]>([]);
   const [loading, setLoading] = useState(false);
   
@@ -242,6 +246,10 @@ export default function AnekdotGenerator({ onBack, ppmData }: AnekdotGeneratorPr
             Catatan Anekdot
           </h1>
         </header>
+
+        <div className="mb-8 max-w-md mx-auto">
+          <PPMWeekSelector currentPpm={ppmData} onSelect={setPpmData} user={user} />
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column: Input Form */}

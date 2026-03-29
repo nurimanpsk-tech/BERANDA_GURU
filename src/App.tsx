@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, LogOut, User as UserIcon } from 'lucide-react';
 import Home from './components/Home';
 import PPMGenerator from './components/PPMGenerator';
+import PPMMenu from './components/PPMMenu';
+import PPMHistory from './components/PPMHistory';
 import AnekdotGenerator from './components/AnekdotGenerator';
 import CeklisGenerator from './components/CeklisGenerator';
 import HasilKaryaGenerator from './components/HasilKaryaGenerator';
@@ -10,16 +12,95 @@ import AnnouncementGenerator from './components/AnnouncementGenerator';
 import CurriculumManager from './components/CurriculumManager';
 import AbsensiSiswa from './components/AbsensiSiswa';
 import AbsensiGuru from './components/AbsensiGuru';
+import Auth from './components/Auth';
+import Settings from './components/Settings';
 import { PPMData } from './services/pdfService';
+import { ppmService } from './services/ppmService';
+import { getSupabase } from './services/supabaseClient';
+import { User } from '@supabase/supabase-js';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
   const [ppmData, setPpmData] = useState<PPMData | null>(null);
   const [returnToAsesmen, setReturnToAsesmen] = useState(false);
   const [returnToAbsensi, setReturnToAbsensi] = useState(false);
+  const [returnToAdmin, setReturnToAdmin] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
-  // Handle browser/hardware back button
+  const supabase = getSupabase();
+
+  // Handle browser/hardware back button and Auth
   useEffect(() => {
+    // Auth Check
+    if (supabase) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        if (currentUser) {
+          fetchProfile(currentUser.id);
+        } else {
+          setAuthLoading(false);
+        }
+      });
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        if (currentUser) {
+          fetchProfile(currentUser.id);
+        } else {
+          setProfile(null);
+        }
+      });
+
+      return () => subscription.unsubscribe();
+    } else {
+      setAuthLoading(false);
+    }
+  }, [supabase]);
+
+  const fetchProfile = async (userId: string) => {
+    if (!supabase) return;
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching profile:', error);
+        // Fallback to user_metadata if profile table doesn't exist yet or error
+        setProfile({ role: user?.user_metadata?.role || 'user' });
+      } else {
+        setProfile(data);
+      }
+    } catch (err) {
+      console.error('Profile fetch error:', err);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!user) {
+      setPpmData(null);
+      return;
+    }
+
+    // Load latest PPM from Supabase
+    const loadPPM = async () => {
+      try {
+        const latest = await ppmService.getLatestPPM(user.id);
+        if (latest) setPpmData(latest);
+      } catch (err) {
+        console.error('Failed to load PPM from Supabase:', err);
+      }
+    };
+    loadPPM();
+
     const handlePopState = (event: PopStateEvent) => {
       if (event.state && event.state.page) {
         setCurrentPage(event.state.page);
@@ -27,6 +108,7 @@ export default function App() {
         if (event.state.page === 'home') {
           setReturnToAsesmen(false);
           setReturnToAbsensi(false);
+          setReturnToAdmin(false);
         }
       } else {
         setCurrentPage('home');
@@ -45,10 +127,10 @@ export default function App() {
 
   const navigateTo = (page: string) => {
     setCurrentPage(page);
-    if (page !== 'home') {
-      setReturnToAsesmen(false);
-      setReturnToAbsensi(false);
-    }
+    // Reset all sub-menu flags whenever navigating
+    setReturnToAsesmen(false);
+    setReturnToAbsensi(false);
+    setReturnToAdmin(false);
     window.history.pushState({ page }, '');
   };
 
@@ -56,6 +138,7 @@ export default function App() {
     setCurrentPage('home');
     setReturnToAsesmen(true);
     setReturnToAbsensi(false);
+    setReturnToAdmin(false);
     window.history.pushState({ page: 'home' }, '');
   };
 
@@ -63,19 +146,45 @@ export default function App() {
     setCurrentPage('home');
     setReturnToAsesmen(false);
     setReturnToAbsensi(true);
+    setReturnToAdmin(false);
     window.history.pushState({ page: 'home' }, '');
   };
 
-  const navigateBackToSurat = () => {
+  const isAdmin = user?.user_metadata?.role === 'admin' || profile?.role === 'admin' || user?.email === 'nurimanpsk@gmail.com';
+
+  const navigateBackToAdmin = () => {
     setCurrentPage('home');
     setReturnToAsesmen(false);
     setReturnToAbsensi(false);
-    // We could add a setReturnToSurat if we want it to stay open
+    setReturnToAdmin(isAdmin);
+    window.history.pushState({ page: 'home' }, '');
   };
 
   const handlePPMGenerated = (data: PPMData) => {
     setPpmData(data);
   };
+
+  const handleLogout = async () => {
+    if (supabase) {
+      await supabase.auth.signOut();
+      setCurrentPage('home');
+    }
+  };
+
+  if (authLoading || (user && !profile)) {
+    return (
+      <div className="min-h-screen bg-[#F5F2ED] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-stone-500 font-medium">Menyiapkan Sistem...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user && supabase) {
+    return <Auth />;
+  }
 
   const dummyPpmData: PPMData = {
     informasiUmum: {
@@ -131,40 +240,66 @@ export default function App() {
           hasPPMData={!!ppmData} 
           initialShowAsesmen={returnToAsesmen}
           initialShowAbsensi={returnToAbsensi}
+          initialShowAdmin={returnToAdmin}
+          user={user}
+          profile={profile}
+          isAdmin={isAdmin}
         />
       )}
       {currentPage === 'curriculum' && (
-        <CurriculumManager onBack={() => navigateTo('home')} />
+        <CurriculumManager onBack={navigateBackToAdmin} />
       )}
       {currentPage === 'ppm' && (
-        <PPMGenerator 
+        <PPMMenu 
           onBack={() => navigateTo('home')} 
+          onSelectCreate={() => navigateTo('ppm-generator')}
+          onSelectHistory={() => navigateTo('ppm-history')}
+        />
+      )}
+      {currentPage === 'ppm-generator' && (
+        <PPMGenerator 
+          onBack={() => navigateTo('ppm')} 
           onGenerate={handlePPMGenerated}
           initialData={ppmData}
+          user={user}
+        />
+      )}
+      {currentPage === 'ppm-history' && (
+        <PPMHistory 
+          onBack={() => navigateTo('ppm')} 
+          onSelect={(data) => {
+            setPpmData(data);
+            navigateTo('ppm-generator');
+          }}
+          user={user}
         />
       )}
       {currentPage === 'anekdot' && (
         <AnekdotGenerator 
           onBack={navigateBackToAsesmen} 
           ppmData={currentPpmData}
+          user={user}
         />
       )}
       {currentPage === 'ceklist' && (
         <CeklisGenerator 
           onBack={navigateBackToAsesmen} 
           ppmData={currentPpmData}
+          user={user}
         />
       )}
       {currentPage === 'hasilkarya' && (
         <HasilKaryaGenerator 
           onBack={navigateBackToAsesmen} 
           ppmData={currentPpmData}
+          user={user}
         />
       )}
       {currentPage === 'foto-berseri' && (
         <FotoBerseriGenerator 
           onBack={navigateBackToAsesmen} 
           ppmData={currentPpmData}
+          user={user}
         />
       )}
       {currentPage === 'pengumuman' && (
@@ -201,23 +336,12 @@ export default function App() {
         <AbsensiGuru onBack={navigateBackToAbsensi} isPrincipalView={true} />
       )}
       {currentPage === 'pengaturan' && (
-        <div className="min-h-screen bg-[#F5F2ED] text-[#1A1A1A] font-sans p-4 md:p-8">
-          <div className="max-w-4xl mx-auto">
-            <header className="mb-12 text-center relative">
-              <button 
-                onClick={() => navigateTo('home')}
-                className="absolute left-0 top-0 p-2 rounded-full hover:bg-stone-200 transition-colors"
-                title="Kembali"
-              >
-                <ArrowLeft size={24} className="text-stone-600" />
-              </button>
-              <h1 className="text-4xl font-serif mb-4">Pengaturan Sekolah</h1>
-            </header>
-            <div className="bg-white rounded-3xl shadow-xl p-12 text-center border border-stone-100">
-              <p className="text-stone-500 text-lg">Fitur ini sedang dalam pengembangan.</p>
-            </div>
-          </div>
-        </div>
+        <Settings 
+          onBack={() => navigateTo('home')} 
+          user={user}
+          profile={profile}
+          onLogout={handleLogout}
+        />
       )}
       {currentPage === 'uang-kas' && (
         <div className="min-h-screen bg-[#F5F2ED] text-[#1A1A1A] font-sans p-4 md:p-8">

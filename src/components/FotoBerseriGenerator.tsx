@@ -1,10 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { ArrowLeft, Image as ImageIcon, Plus, Trash2, Download, Camera, BookOpen, Sparkles } from 'lucide-react';
+import { ArrowLeft, Image as ImageIcon, Plus, Trash2, Download, Camera, BookOpen, Sparkles, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { PPMData } from '../services/pdfService';
 import { generateText } from '../services/aiService';
+import { User } from '@supabase/supabase-js';
+import PPMWeekSelector from './PPMWeekSelector';
 
 interface FotoBerseriImage {
   data: string;
@@ -24,9 +26,11 @@ interface FotoBerseriEntry {
 interface FotoBerseriGeneratorProps {
   onBack: () => void;
   ppmData: PPMData;
+  user: User | null;
 }
 
-export default function FotoBerseriGenerator({ onBack, ppmData }: FotoBerseriGeneratorProps) {
+export default function FotoBerseriGenerator({ onBack, ppmData: initialPpmData, user }: FotoBerseriGeneratorProps) {
+  const [ppmData, setPpmData] = useState<PPMData>(initialPpmData);
   const [entries, setEntries] = useState<FotoBerseriEntry[]>([
     { 
       id: '1', 
@@ -361,6 +365,10 @@ Format output: Langsung berikan 3 poin deskripsi menggunakan simbol bullet (•)
             Asesmen Foto Berseri
           </h1>
         </header>
+
+        <div className="mb-8 max-w-md mx-auto">
+          <PPMWeekSelector currentPpm={ppmData} onSelect={setPpmData} user={user} />
+        </div>
 
         <div className="bg-white rounded-3xl shadow-xl shadow-stone-200/50 border border-stone-200 overflow-hidden mb-8">
           <div className="p-6 border-bottom border-stone-100 bg-stone-50/50">

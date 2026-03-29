@@ -1,20 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { User } from '@supabase/supabase-js';
 import { generatePPM } from '../services/aiService';
 import { generatePPMPDF, PPMData } from '../services/pdfService';
-import { FileText, Sparkles, Download, Loader2, CheckCircle2, AlertCircle, ArrowLeft } from 'lucide-react';
+import { ppmService } from '../services/ppmService';
+import { FileText, Sparkles, Download, Loader2, CheckCircle2, AlertCircle, ArrowLeft, Save } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface PPMGeneratorProps {
   onBack: () => void;
   onGenerate: (data: PPMData) => void;
   initialData: PPMData | null;
+  user: User | null;
 }
 
-export default function PPMGenerator({ onBack, onGenerate, initialData }: PPMGeneratorProps) {
+export default function PPMGenerator({ onBack, onGenerate, initialData, user }: PPMGeneratorProps) {
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
   const [ppmData, setPpmData] = useState<PPMData | null>(initialData);
   const [error, setError] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   const [schoolInfo, setSchoolInfo] = useState({
     schoolName: initialData?.schoolName || 'TK BALEGONDO 1',
@@ -28,11 +32,24 @@ export default function PPMGenerator({ onBack, onGenerate, initialData }: PPMGen
   });
 
   // Update prompt if initialData exists (optional, maybe extract theme)
-  React.useEffect(() => {
+  useEffect(() => {
     if (initialData) {
       setPrompt(initialData.informasiUmum.tema + (initialData.informasiUmum.subTema ? `, ${initialData.informasiUmum.subTema}` : ''));
     }
   }, [initialData]);
+
+  const handleSaveToSupabase = async (data: PPMData) => {
+    if (!user) return;
+    setSaveStatus('saving');
+    try {
+      await ppmService.savePPM(data, user.id);
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    } catch (err) {
+      console.error('Error saving to Supabase:', err);
+      setSaveStatus('error');
+    }
+  };
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -63,6 +80,9 @@ export default function PPMGenerator({ onBack, onGenerate, initialData }: PPMGen
       };
       setPpmData(fullData);
       onGenerate(fullData); // Update parent state
+      
+      // Auto-save to Supabase after generation
+      await handleSaveToSupabase(fullData);
     } catch (err) {
       console.error(err);
       setError('Gagal menghasilkan PPM. Silakan coba lagi.');
@@ -99,7 +119,7 @@ export default function PPMGenerator({ onBack, onGenerate, initialData }: PPMGen
             AI-Powered Education
           </motion.div>
           <h1 className="text-4xl md:text-5xl font-serif font-light mb-4 tracking-tight">
-            PPM
+            PPM Generator
           </h1>
           <p className="text-stone-500 max-w-xl mx-auto">
             Buat Perencanaan Pembelajaran Mendalam (PPM) otomatis dengan struktur lengkap dan rapi sesuai standar kurikulum merdeka.
@@ -241,13 +261,31 @@ export default function PPMGenerator({ onBack, onGenerate, initialData }: PPMGen
                     <p className="text-xs text-stone-500 uppercase tracking-widest font-bold">Siap untuk diunduh</p>
                   </div>
                 </div>
-                <button
-                  onClick={handleDownload}
-                  className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-medium flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/20"
-                >
-                  <Download size={18} />
-                  Unduh PDF (Landscape)
-                </button>
+                <div className="flex items-center gap-2">
+                  {saveStatus === 'saving' && <Loader2 className="animate-spin text-stone-400" size={16} />}
+                  {saveStatus === 'saved' && <CheckCircle2 className="text-emerald-500" size={16} />}
+                  {saveStatus === 'error' && <AlertCircle className="text-red-500" size={16} />}
+                  <span className="text-xs text-stone-400 font-medium italic">
+                    {saveStatus === 'saving' ? 'Menyimpan ke Cloud...' : 
+                     saveStatus === 'saved' ? 'Tersimpan di Cloud' : 
+                     saveStatus === 'error' ? 'Gagal menyimpan' : ''}
+                  </span>
+                  <button
+                    onClick={() => handleSaveToSupabase(ppmData)}
+                    disabled={saveStatus === 'saving'}
+                    className="bg-white text-stone-700 border border-stone-200 px-6 py-2.5 rounded-xl font-medium flex items-center gap-2 hover:bg-stone-100 transition-all"
+                  >
+                    <Save size={18} />
+                    Simpan ke Cloud
+                  </button>
+                  <button
+                    onClick={handleDownload}
+                    className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-medium flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/20"
+                  >
+                    <Download size={18} />
+                    Unduh PDF (Landscape)
+                  </button>
+                </div>
               </div>
 
               <div className="p-8">

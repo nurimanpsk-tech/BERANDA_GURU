@@ -1,14 +1,17 @@
 import React, { useState, useRef } from 'react';
 import { PPMData } from '../services/pdfService';
-import { ArrowLeft, Palette, Plus, Trash2, Download, Sparkles, Loader2, Save, Image as ImageIcon, X, Clock } from 'lucide-react';
+import { ArrowLeft, Palette, Plus, Trash2, Download, Sparkles, Loader2, Save, Image as ImageIcon, X, Clock, Calendar } from 'lucide-react';
 import { motion } from 'motion/react';
 import { generateText } from '../services/aiService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { User } from '@supabase/supabase-js';
+import PPMWeekSelector from './PPMWeekSelector';
 
 interface HasilKaryaGeneratorProps {
   onBack: () => void;
   ppmData: PPMData;
+  user: User | null;
 }
 
 interface Artwork {
@@ -22,7 +25,8 @@ interface Artwork {
   activity: string; // Kegiatan dari PPM
 }
 
-export default function HasilKaryaGenerator({ onBack, ppmData }: HasilKaryaGeneratorProps) {
+export default function HasilKaryaGenerator({ onBack, ppmData: initialPpmData, user }: HasilKaryaGeneratorProps) {
+  const [ppmData, setPpmData] = useState<PPMData>(initialPpmData);
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [loadingAI, setLoadingAI] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -342,6 +346,10 @@ export default function HasilKaryaGenerator({ onBack, ppmData }: HasilKaryaGener
             Asesmen Hasil Karya
           </h1>
         </header>
+
+        <div className="mb-8 max-w-md mx-auto">
+          <PPMWeekSelector currentPpm={ppmData} onSelect={setPpmData} user={user} />
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
