@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, LogOut, User as UserIcon } from 'lucide-react';
+import { ArrowLeft, LogOut, User as UserIcon, Lock } from 'lucide-react';
 import Home from './components/Home';
 import PPMGenerator from './components/PPMGenerator';
 import PPMMenu from './components/PPMMenu';
@@ -182,7 +182,32 @@ export default function App() {
     );
   }
 
-  if (!user && supabase) {
+  if (!supabase) {
+    return (
+      <div className="min-h-screen bg-[#F5F2ED] flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 border border-amber-200 text-center">
+          <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <Lock size={32} />
+          </div>
+          <h2 className="text-2xl font-serif font-bold text-stone-800 mb-4">Konfigurasi Diperlukan</h2>
+          <p className="text-stone-600 mb-6 leading-relaxed">
+            Sistem otentikasi (Login) belum aktif karena <strong>VITE_SUPABASE_URL</strong> dan <strong>VITE_SUPABASE_ANON_KEY</strong> belum dikonfigurasi di environment variables.
+          </p>
+          <div className="bg-stone-50 rounded-xl p-4 text-left text-sm font-mono text-stone-500 mb-6 break-all">
+            Silakan tambahkan variabel tersebut di platform deployment Anda (Vercel/Netlify/Cloud Run) agar menu login muncul.
+          </div>
+          <button 
+            onClick={() => window.location.reload()}
+            className="w-full bg-amber-600 text-white font-bold py-3 rounded-xl hover:bg-amber-700 transition-all"
+          >
+            Muat Ulang Halaman
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
     return <Auth />;
   }
 
