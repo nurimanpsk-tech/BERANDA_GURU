@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, Send, Copy, Check, Sparkles, Megaphone, Calendar, Clock, MapPin, Info } from 'lucide-react';
-import { generateText } from '../services/aiService';
+import { generateText } from '../../services/aiService';
 
 interface AnnouncementGeneratorProps {
   onBack: () => void;

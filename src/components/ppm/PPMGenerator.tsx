@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
-import { getSupabase } from '../services/supabaseClient';
-import { generatePPM } from '../services/aiService';
-import { generatePPMPDF, PPMData } from '../services/pdfService';
-import { ppmService } from '../services/ppmService';
+import { getSupabase } from '../../services/supabaseClient';
+import { generatePPM } from '../../services/aiService';
+import { generatePPMPDF, PPMData } from '../../services/pdfService';
+import { ppmService } from '../../services/ppmService';
 import { FileText, Sparkles, Download, Loader2, CheckCircle2, AlertCircle, ArrowLeft, Save } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -21,15 +21,52 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
   const [error, setError] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
+  const getAcademicYear = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth(); // 0-11
+    
+    if (month < 6) { // Before July
+      return `${year - 1}/${year}`;
+    } else {
+      return `${year}/${year + 1}`;
+    }
+  };
+
+  const defaultAcademicYear = getAcademicYear();
+
+  // Parsing initial mingguSemester
+  const parseMingguSemester = (str: string) => {
+    const mingguMatch = str.match(/Minggu ke-(\d+)/);
+    const semesterMatch = str.match(/Semester (I|II)/);
+    return {
+      minggu: mingguMatch ? mingguMatch[1] : '1',
+      semester: semesterMatch ? semesterMatch[1] : 'I'
+    };
+  };
+
+  const initialMS = parseMingguSemester(initialData?.informasiUmum?.mingguSemester || 'Minggu ke-1 / Semester I');
+
+  const [isCustomYear, setIsCustomYear] = useState(false);
+
+  const getCurrentMonthName = () => {
+    const months = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    return months[new Date().getMonth()];
+  };
+
   const [schoolInfo, setSchoolInfo] = useState({
-    schoolName: initialData?.schoolName || 'TK BALEGONDO 1',
-    academicYear: initialData?.academicYear || 'TAHUN PELAJARAN 2025/2026',
-    principalName: initialData?.principalName || 'KUNLISTYANI, S.Pd',
-    teacherName: initialData?.teacherName || 'NABILA ANIN SAU\'DAH',
-    usia: initialData?.informasiUmum?.usia || '5-6 Tahun (Kelompok B)',
-    mingguSemester: initialData?.informasiUmum?.mingguSemester || 'Minggu ke-10 / Semester II',
-    alokasiWaktu: initialData?.informasiUmum?.alokasiWaktu || '210 Menit per Hari',
-    hariTanggal: initialData?.informasiUmum?.hariTanggal || 'Senin - Jumat / Mei 2026',
+    schoolName: initialData?.schoolName || '',
+    academicYear: initialData?.academicYear || `TAHUN PELAJARAN ${defaultAcademicYear}`,
+    principalName: initialData?.principalName || '',
+    teacherName: initialData?.teacherName || '',
+    usia: initialData?.informasiUmum?.usia || '4 - 5 Tahun (Kelompok A)',
+    minggu: initialMS.minggu,
+    semester: initialMS.semester,
+    alokasiWaktu: initialData?.informasiUmum?.alokasiWaktu || '',
+    hariTanggal: initialData?.informasiUmum?.hariTanggal || '',
   });
 
   // Update prompt if initialData exists (optional, maybe extract theme)
@@ -75,6 +112,7 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
         }
       }
 
+      const combinedMingguSemester = `Minggu ke-${schoolInfo.minggu} / Semester ${schoolInfo.semester}`;
       const data = await generatePPM(prompt, curriculumContext, schoolInfo.hariTanggal);
       const fullData = {
         ...data,
@@ -82,7 +120,7 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
         informasiUmum: {
           ...data.informasiUmum,
           usia: schoolInfo.usia,
-          mingguSemester: schoolInfo.mingguSemester,
+          mingguSemester: combinedMingguSemester,
           alokasiWaktu: schoolInfo.alokasiWaktu,
           hariTanggal: schoolInfo.hariTanggal,
         }
@@ -148,35 +186,73 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
                 type="text"
                 value={schoolInfo.schoolName}
                 onChange={(e) => setSchoolInfo({ ...schoolInfo, schoolName: e.target.value })}
+                placeholder="Ketik Nama Sekolah"
                 className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
               />
             </div>
             <div>
               <label className="block text-xs font-bold uppercase tracking-widest text-stone-400 mb-2">Tahun Pelajaran</label>
-              <input
-                type="text"
-                value={schoolInfo.academicYear}
-                onChange={(e) => setSchoolInfo({ ...schoolInfo, academicYear: e.target.value })}
-                className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
-              />
+              <div className="space-y-2">
+                <select
+                  value={isCustomYear ? 'custom' : schoolInfo.academicYear}
+                  onChange={(e) => {
+                    if (e.target.value === 'custom') {
+                      setIsCustomYear(true);
+                    } else {
+                      setIsCustomYear(false);
+                      setSchoolInfo({ ...schoolInfo, academicYear: e.target.value });
+                    }
+                  }}
+                  className="w-full bg-white border border-stone-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all appearance-none"
+                >
+                  <option value={`TAHUN PELAJARAN ${defaultAcademicYear}`}>TAHUN PELAJARAN {defaultAcademicYear}</option>
+                  <option value="custom">Ketik Sendiri</option>
+                </select>
+                {isCustomYear && (
+                  <motion.input
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    type="text"
+                    placeholder="Contoh: TAHUN PELAJARAN 2024/2025"
+                    value={schoolInfo.academicYear}
+                    onChange={(e) => setSchoolInfo({ ...schoolInfo, academicYear: e.target.value })}
+                    className="w-full bg-white border border-stone-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                  />
+                )}
+              </div>
             </div>
             <div>
               <label className="block text-xs font-bold uppercase tracking-widest text-stone-400 mb-2">Usia</label>
-              <input
-                type="text"
+              <select
                 value={schoolInfo.usia}
                 onChange={(e) => setSchoolInfo({ ...schoolInfo, usia: e.target.value })}
-                className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
-              />
+                className="w-full bg-white border border-stone-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all appearance-none"
+              >
+                <option value="4 - 5 Tahun (Kelompok A)">4 - 5 Tahun (Kelompok A)</option>
+                <option value="5 - 6 Tahun (Kelompok B)">5 - 6 Tahun (Kelompok B)</option>
+              </select>
             </div>
             <div>
               <label className="block text-xs font-bold uppercase tracking-widest text-stone-400 mb-2">Minggu / Semester</label>
-              <input
-                type="text"
-                value={schoolInfo.mingguSemester}
-                onChange={(e) => setSchoolInfo({ ...schoolInfo, mingguSemester: e.target.value })}
-                className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
-              />
+              <div className="grid grid-cols-2 gap-2">
+                <select
+                  value={schoolInfo.minggu}
+                  onChange={(e) => setSchoolInfo({ ...schoolInfo, minggu: e.target.value })}
+                  className="bg-white border border-stone-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all appearance-none"
+                >
+                  {Array.from({ length: 18 }, (_, i) => i + 1).map((w) => (
+                    <option key={w} value={w}>Minggu ke-{w}</option>
+                  ))}
+                </select>
+                <select
+                  value={schoolInfo.semester}
+                  onChange={(e) => setSchoolInfo({ ...schoolInfo, semester: e.target.value })}
+                  className="bg-white border border-stone-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all appearance-none"
+                >
+                  <option value="I">Semester I</option>
+                  <option value="II">Semester II</option>
+                </select>
+              </div>
             </div>
             <div>
               <label className="block text-xs font-bold uppercase tracking-widest text-stone-400 mb-2">Alokasi Waktu</label>
@@ -184,6 +260,7 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
                 type="text"
                 value={schoolInfo.alokasiWaktu}
                 onChange={(e) => setSchoolInfo({ ...schoolInfo, alokasiWaktu: e.target.value })}
+                placeholder="Contoh: 1 - 5 Pertemuan (180 menit/hari)"
                 className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
               />
             </div>
@@ -193,6 +270,7 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
                 type="text"
                 value={schoolInfo.hariTanggal}
                 onChange={(e) => setSchoolInfo({ ...schoolInfo, hariTanggal: e.target.value })}
+                placeholder={`Contoh: Senin - Jumat / ${getCurrentMonthName()} ${new Date().getFullYear()}`}
                 className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
               />
             </div>
@@ -200,17 +278,17 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
 
           <div className="mb-8">
             <label className="block text-xs font-bold uppercase tracking-widest text-stone-400 mb-2">Tema / Topik Pembelajaran</label>
-            <div className="relative">
-              <textarea
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Contoh: Aku dan Mimpiku, Alam Semesta, Budaya Lokal..."
-                className="w-full bg-stone-50 border border-stone-200 rounded-2xl px-4 py-4 min-h-[120px] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all resize-none text-lg"
-              />
+            <textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="Contoh: Aku dan Mimpiku, Alam Semesta, Budaya Lokal..."
+              className="w-full bg-stone-50 border border-stone-200 rounded-2xl px-4 py-4 min-h-[120px] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all resize-none text-lg mb-4"
+            />
+            <div className="flex justify-end">
               <button
                 onClick={handleGenerate}
                 disabled={loading || !prompt.trim()}
-                className="absolute bottom-4 right-4 bg-[#1A1A1A] text-white px-6 py-2.5 rounded-xl font-medium flex items-center gap-2 hover:bg-stone-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-black/10"
+                className="bg-[#1A1A1A] text-white px-8 py-3 rounded-xl font-medium flex items-center gap-2 hover:bg-stone-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-black/10"
               >
                 {loading ? <Loader2 className="animate-spin" size={18} /> : <Sparkles size={18} />}
                 {loading ? 'Menyusun...' : 'Buat PPM'}
@@ -225,6 +303,7 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
                 type="text"
                 value={schoolInfo.principalName}
                 onChange={(e) => setSchoolInfo({ ...schoolInfo, principalName: e.target.value })}
+                placeholder="Ketik Nama Kepala Sekolah"
                 className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
               />
             </div>
@@ -234,6 +313,7 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
                 type="text"
                 value={schoolInfo.teacherName}
                 onChange={(e) => setSchoolInfo({ ...schoolInfo, teacherName: e.target.value })}
+                placeholder="Ketik Nama Guru"
                 className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
               />
             </div>

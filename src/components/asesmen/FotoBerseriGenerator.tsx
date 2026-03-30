@@ -3,10 +3,10 @@ import { ArrowLeft, Image as ImageIcon, Plus, Trash2, Download, Camera, BookOpen
 import { motion, AnimatePresence } from 'motion/react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { PPMData } from '../services/pdfService';
-import { generateText } from '../services/aiService';
+import { PPMData } from '../../services/pdfService';
+import { generateText } from '../../services/aiService';
 import { User } from '@supabase/supabase-js';
-import PPMWeekSelector from './PPMWeekSelector';
+import PPMWeekSelector from '../ppm/PPMWeekSelector';
 
 interface FotoBerseriImage {
   data: string;
@@ -236,7 +236,7 @@ Format output: Langsung berikan 3 poin deskripsi menggunakan simbol bullet (•)
       doc.setFontSize(10.5);
       doc.setFont('helvetica', 'normal');
       
-      const startY = 30;
+      const startY = 40;
       const lineHeight = 6;
       
       // Info Grid - Adjusted for Landscape
@@ -265,7 +265,7 @@ Format output: Langsung berikan 3 poin deskripsi menggunakan simbol bullet (•)
       doc.text(splitTopic, midX + 35, startY + lineHeight);
 
       // Table Header
-      const tableStartY = startY + lineHeight * 2 + 5;
+      const tableStartY = startY + lineHeight * 2 + 8;
       
       autoTable(doc, {
         startY: tableStartY,
@@ -371,7 +371,7 @@ Format output: Langsung berikan 3 poin deskripsi menggunakan simbol bullet (•)
         </div>
 
         <div className="bg-white rounded-3xl shadow-xl shadow-stone-200/50 border border-stone-200 overflow-hidden mb-8">
-          <div className="p-6 border-bottom border-stone-100 bg-stone-50/50">
+          <div className="p-6 border-bottom border-stone-100 bg-stone-50/50 mb-4">
             <div className="flex flex-wrap gap-6 text-sm">
               <div>
                 <span className="text-stone-400 uppercase text-[10px] font-bold tracking-wider block mb-1">Sekolah</span>

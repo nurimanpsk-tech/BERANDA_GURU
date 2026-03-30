@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, LogOut, User as UserIcon, Lock } from 'lucide-react';
-import Home from './components/Home';
-import PPMGenerator from './components/PPMGenerator';
-import PPMMenu from './components/PPMMenu';
-import PPMHistory from './components/PPMHistory';
-import AnekdotGenerator from './components/AnekdotGenerator';
-import CeklisGenerator from './components/CeklisGenerator';
-import HasilKaryaGenerator from './components/HasilKaryaGenerator';
-import FotoBerseriGenerator from './components/FotoBerseriGenerator';
-import AnnouncementGenerator from './components/AnnouncementGenerator';
-import CurriculumManager from './components/CurriculumManager';
-import AbsensiSiswa from './components/AbsensiSiswa';
-import AbsensiGuru from './components/AbsensiGuru';
-import Auth from './components/Auth';
-import Settings from './components/Settings';
+import Home from './components/home/Home';
+import PPMGenerator from './components/ppm/PPMGenerator';
+import PPMMenu from './components/ppm/PPMMenu';
+import PPMHistory from './components/ppm/PPMHistory';
+import AnekdotGenerator from './components/asesmen/AnekdotGenerator';
+import CeklisGenerator from './components/asesmen/CeklisGenerator';
+import HasilKaryaGenerator from './components/asesmen/HasilKaryaGenerator';
+import FotoBerseriGenerator from './components/asesmen/FotoBerseriGenerator';
+import AnnouncementGenerator from './components/announcement/AnnouncementGenerator';
+import CurriculumManager from './components/admin/CurriculumManager';
+import UserManager from './components/admin/UserManager';
+import AbsensiManager from './components/absensi/AbsensiManager';
+import AbsensiSiswa from './components/absensi/AbsensiSiswa';
+import AbsensiGuru from './components/absensi/AbsensiGuru';
+import Auth from './components/auth/Auth';
+import Settings from './components/settings/Settings';
 import { PPMData } from './services/pdfService';
 import { ppmService } from './services/ppmService';
 import { getSupabase } from './services/supabaseClient';
@@ -274,6 +276,9 @@ export default function App() {
       {currentPage === 'curriculum' && (
         <CurriculumManager onBack={navigateBackToAdmin} user={user} />
       )}
+      {currentPage === 'users' && (
+        <UserManager onBack={navigateBackToAdmin} currentUser={user} />
+      )}
       {currentPage === 'ppm' && (
         <PPMMenu 
           onBack={() => navigateTo('home')} 
@@ -350,6 +355,9 @@ export default function App() {
             </div>
           </div>
         </div>
+      )}
+      {currentPage === 'absensi' && (
+        <AbsensiManager onBack={() => navigateTo('home')} />
       )}
       {currentPage === 'absensi-siswa' && (
         <AbsensiSiswa onBack={navigateBackToAbsensi} />

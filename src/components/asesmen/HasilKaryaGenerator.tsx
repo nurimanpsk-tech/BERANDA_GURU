@@ -1,12 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { PPMData } from '../services/pdfService';
+import { PPMData } from '../../services/pdfService';
 import { ArrowLeft, Palette, Plus, Trash2, Download, Sparkles, Loader2, Save, Image as ImageIcon, X, Clock, Calendar } from 'lucide-react';
 import { motion } from 'motion/react';
-import { generateText } from '../services/aiService';
+import { generateText } from '../../services/aiService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { User } from '@supabase/supabase-js';
-import PPMWeekSelector from './PPMWeekSelector';
+import PPMWeekSelector from '../ppm/PPMWeekSelector';
 
 interface HasilKaryaGeneratorProps {
   onBack: () => void;
@@ -196,7 +196,7 @@ export default function HasilKaryaGenerator({ onBack, ppmData: initialPpmData, u
     doc.setFontSize(10.5);
     doc.setFont('helvetica', 'normal');
     
-    const startY = 20;
+    const startY = 30;
     const lineHeight = 6;
     
     // School Info
@@ -214,7 +214,7 @@ export default function HasilKaryaGenerator({ onBack, ppmData: initialPpmData, u
       doc.text(`: ${info.value}`, 60, startY + (index * lineHeight));
     });
 
-    const tableStartY = startY + (infoLabels.length * lineHeight) + 5;
+    const tableStartY = startY + (infoLabels.length * lineHeight) + 8;
 
     const tableHead = [
       [
@@ -356,7 +356,7 @@ export default function HasilKaryaGenerator({ onBack, ppmData: initialPpmData, u
           {/* Left: Input Form */}
           <div className="lg:col-span-4 space-y-6">
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
-              <h3 className="font-bold text-stone-800 mb-4 flex items-center gap-2">
+              <h3 className="font-bold text-stone-800 mb-6 flex items-center gap-2">
                 <Plus size={18} className="text-emerald-600" />
                 Tambah Karya
               </h3>

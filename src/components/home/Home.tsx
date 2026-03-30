@@ -34,9 +34,17 @@ export default function Home({
       id: 'curriculum',
       title: 'Kelola Capaian Pembelajaran',
       description: 'Input daftar TP dan IKTP dari Pengawas untuk referensi AI.',
-      icon: <Database size={28} className="text-indigo-600" />,
-      color: 'bg-indigo-50 hover:bg-indigo-100 border-indigo-200',
-      textColor: 'text-indigo-900',
+      icon: <Database size={28} className="text-purple-600" />,
+      color: 'bg-purple-50 hover:bg-purple-100 border-purple-200',
+      textColor: 'text-purple-900',
+    },
+    {
+      id: 'users',
+      title: 'Daftar Pengguna',
+      description: 'Pantau siapa saja yang mendaftar dan aktif di sistem.',
+      icon: <Users size={28} className="text-emerald-600" />,
+      color: 'bg-emerald-50 hover:bg-emerald-100 border-emerald-200',
+      textColor: 'text-emerald-900',
     }
   ];
 
@@ -107,9 +115,9 @@ export default function Home({
       id: 'absensi-guru',
       title: 'Absensi Guru',
       description: 'Sistem absensi dan jam kerja guru/staf.',
-      icon: <UserCog size={28} className="text-indigo-600" />,
-      color: 'bg-indigo-50 hover:bg-indigo-100 border-indigo-200',
-      textColor: 'text-indigo-900',
+      icon: <UserCog size={28} className="text-amber-600" />,
+      color: 'bg-amber-50 hover:bg-amber-100 border-amber-200',
+      textColor: 'text-amber-900',
     },
     {
       id: 'absensi-ks',
@@ -127,10 +135,19 @@ export default function Home({
           id: 'curriculum',
           title: 'Kelola Capaian Pembelajaran',
           description: 'Input daftar TP dan IKTP dari Pengawas untuk referensi AI.',
-          icon: <Database size={32} className="text-indigo-600" />,
-          color: 'bg-indigo-50 hover:bg-indigo-100 border-indigo-200',
-          textColor: 'text-indigo-900',
+          icon: <Database size={32} className="text-purple-600" />,
+          color: 'bg-purple-50 hover:bg-purple-100 border-purple-200',
+          textColor: 'text-purple-900',
           action: () => onNavigate('curriculum')
+        },
+        {
+          id: 'users',
+          title: 'Daftar Pengguna',
+          description: 'Pantau siapa saja yang mendaftar dan aktif di sistem.',
+          icon: <Users size={32} className="text-emerald-600" />,
+          color: 'bg-emerald-50 hover:bg-emerald-100 border-emerald-200',
+          textColor: 'text-emerald-900',
+          action: () => onNavigate('users')
         },
         {
           id: 'pengaturan',
@@ -177,15 +194,15 @@ export default function Home({
           icon: <Users size={32} className="text-cyan-600" />,
           color: 'bg-cyan-50 hover:bg-cyan-100 border-cyan-200',
           textColor: 'text-cyan-900',
-          action: () => setShowAbsensiMenu(true)
+          action: () => onNavigate('absensi')
         },
         {
           id: 'buku-induk',
           title: 'Buku Induk',
           description: 'Database lengkap profil siswa, riwayat masuk, dan keluar.',
-          icon: <Contact size={32} className="text-indigo-600" />,
-          color: 'bg-indigo-50 hover:bg-indigo-100 border-indigo-200',
-          textColor: 'text-indigo-900',
+          icon: <Contact size={32} className="text-amber-600" />,
+          color: 'bg-amber-50 hover:bg-amber-100 border-amber-200',
+          textColor: 'text-amber-900',
           action: () => onNavigate('buku-induk')
         },
         {

@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { PPMData } from '../services/pdfService';
+import { PPMData } from '../../services/pdfService';
 import { ArrowLeft, BookOpen, Plus, Trash2, Download, Sparkles, Loader2, Save, Users, CheckSquare, Calendar } from 'lucide-react';
 import { motion } from 'motion/react';
-import { generateJSON } from '../services/aiService';
+import { generateJSON } from '../../services/aiService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { User } from '@supabase/supabase-js';
-import { getSupabase } from '../services/supabaseClient';
-import PPMWeekSelector from './PPMWeekSelector';
+import { getSupabase } from '../../services/supabaseClient';
+import PPMWeekSelector from '../ppm/PPMWeekSelector';
 
 interface CeklisGeneratorProps {
   onBack: () => void;
@@ -210,7 +210,7 @@ export default function CeklisGenerator({ onBack, ppmData: initialPpmData, user 
     doc.setFontSize(10.5);
     doc.setFont('helvetica', 'normal');
     
-    const startY = 20;
+    const startY = 30;
     const lineHeight = 6;
     
     // School Info
@@ -229,7 +229,7 @@ export default function CeklisGenerator({ onBack, ppmData: initialPpmData, user 
     });
 
     // Table
-    const tableStartY = startY + (infoLabels.length * lineHeight) + 5;
+    const tableStartY = startY + (infoLabels.length * lineHeight) + 8;
     
     // Prepare Table Data
     const tableHead = [
@@ -356,7 +356,7 @@ export default function CeklisGenerator({ onBack, ppmData: initialPpmData, user 
             
             {/* Date & Day */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
-              <h3 className="font-bold text-stone-800 mb-4 flex items-center gap-2">
+              <h3 className="font-bold text-stone-800 mb-6 flex items-center gap-2">
                 <BookOpen size={18} className="text-emerald-600" />
                 Waktu & Kegiatan
               </h3>
@@ -390,7 +390,7 @@ export default function CeklisGenerator({ onBack, ppmData: initialPpmData, user 
 
             {/* Student List */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
-              <h3 className="font-bold text-stone-800 mb-4 flex items-center gap-2">
+              <h3 className="font-bold text-stone-800 mb-6 flex items-center gap-2">
                 <Users size={18} className="text-emerald-600" />
                 Daftar Siswa ({students.length})
               </h3>
@@ -423,7 +423,7 @@ export default function CeklisGenerator({ onBack, ppmData: initialPpmData, user 
 
             {/* Objectives Selection */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
-              <h3 className="font-bold text-stone-800 mb-4 flex items-center gap-2">
+              <h3 className="font-bold text-stone-800 mb-6 flex items-center gap-2">
                 <CheckSquare size={18} className="text-emerald-600" />
                 Pilih Tujuan Pembelajaran
               </h3>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
-import { ppmService } from '../services/ppmService';
-import { generatePPMPDF, PPMData } from '../services/pdfService';
+import { ppmService } from '../../services/ppmService';
+import { generatePPMPDF, PPMData } from '../../services/pdfService';
 import { History, Download, ArrowLeft, Loader2, FileText, Search, Trash2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -12,10 +12,12 @@ interface PPMHistoryProps {
 }
 
 export default function PPMHistory({ onBack, onSelect, user }: PPMHistoryProps) {
-  const [ppms, setPpms] = useState<PPMData[]>([]);
+  const [ppms, setPpms] = useState<{ id: string; data: PPMData }[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPpms = async () => {
@@ -36,18 +38,72 @@ export default function PPMHistory({ onBack, onSelect, user }: PPMHistoryProps) 
     fetchPpms();
   }, [user]);
 
-  const filteredPpms = ppms.filter(ppm => 
-    ppm.informasiUmum.tema.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ppm.informasiUmum.subTema.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredPpms = ppms.filter(item => 
+    item.data.informasiUmum.tema.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.data.informasiUmum.subTema.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleDownload = (ppm: PPMData) => {
     generatePPMPDF(ppm);
   };
 
+  const handleDelete = async (id: string) => {
+    setDeletingId(id);
+    try {
+      await ppmService.deletePPM(id);
+      setPpms(prev => prev.filter(item => item.id !== id));
+      setConfirmDeleteId(null);
+    } catch (err) {
+      console.error('Failed to delete PPM:', err);
+      setError('Gagal menghapus PPM. Silakan coba lagi.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F5F2ED] text-[#1A1A1A] font-sans p-4 md:p-8">
       <div className="max-w-5xl mx-auto">
+        {/* Custom Confirmation Modal */}
+        <AnimatePresence>
+          {confirmDeleteId && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-stone-100"
+              >
+                <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Trash2 size={32} />
+                </div>
+                <h3 className="text-xl font-bold text-center mb-2">Hapus PPM?</h3>
+                <p className="text-stone-500 text-center mb-8">
+                  Data yang dihapus tidak dapat dikembalikan. Apakah Anda yakin?
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setConfirmDeleteId(null)}
+                    className="flex-1 px-4 py-3 rounded-xl border border-stone-200 font-medium hover:bg-stone-50 transition-colors"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={() => handleDelete(confirmDeleteId)}
+                    disabled={deletingId === confirmDeleteId}
+                    className="flex-1 px-4 py-3 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    {deletingId === confirmDeleteId ? (
+                      <Loader2 size={18} className="animate-spin" />
+                    ) : (
+                      'Ya, Hapus'
+                    )}
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
         <header className="mb-12 text-center relative">
           <button 
             onClick={onBack}
@@ -104,15 +160,15 @@ export default function PPMHistory({ onBack, onSelect, user }: PPMHistoryProps) 
         ) : filteredPpms.length === 0 ? (
           <div className="bg-white rounded-3xl p-20 text-center border border-dashed border-stone-300">
             <FileText className="mx-auto mb-4 text-stone-300" size={64} />
-            <h3 className="text-xl font-serif text-stone-400">Belum ada PPM yang tersimpan</h3>
+            <h3 className="text-xl font-bold text-stone-400">Belum ada PPM yang tersimpan</h3>
             <p className="text-stone-400 mt-2">Mulai buat PPM baru di menu Generator.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <AnimatePresence>
-              {filteredPpms.map((ppm, index) => (
+              {filteredPpms.map((item, index) => (
                 <motion.div
-                  key={index}
+                  key={item.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
@@ -123,34 +179,48 @@ export default function PPMHistory({ onBack, onSelect, user }: PPMHistoryProps) 
                       <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
                         <FileText size={20} />
                       </div>
-                      <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest bg-stone-50 px-2 py-1 rounded-md">
-                        {ppm.informasiUmum.usia}
-                      </span>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setConfirmDeleteId(item.id)}
+                          disabled={deletingId === item.id}
+                          className="p-2 text-stone-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                          title="Hapus PPM"
+                        >
+                          {deletingId === item.id ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : (
+                            <Trash2 size={16} />
+                          )}
+                        </button>
+                        <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest bg-stone-50 px-2 py-1 rounded-md flex items-center">
+                          {item.data.informasiUmum.usia}
+                        </span>
+                      </div>
                     </div>
-                    <h3 className="text-xl font-serif mb-1 line-clamp-1">{ppm.informasiUmum.tema}</h3>
-                    <p className="text-stone-500 text-sm mb-4 line-clamp-2">{ppm.informasiUmum.subTema}</p>
+                    <h3 className="text-xl font-bold mb-1 line-clamp-1">{item.data.informasiUmum.tema}</h3>
+                    <p className="text-stone-500 text-sm mb-4 line-clamp-2">{item.data.informasiUmum.subTema}</p>
                     
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-xs text-stone-400">
                         <span className="font-bold uppercase tracking-tighter">Minggu:</span>
-                        <span>{ppm.informasiUmum.mingguSemester}</span>
+                        <span>{item.data.informasiUmum.mingguSemester}</span>
                       </div>
                       <div className="flex items-center gap-2 text-xs text-stone-400">
                         <span className="font-bold uppercase tracking-tighter">Tanggal:</span>
-                        <span>{ppm.informasiUmum.hariTanggal}</span>
+                        <span>{item.data.informasiUmum.hariTanggal}</span>
                       </div>
                     </div>
                   </div>
                   
                   <div className="p-4 bg-stone-50 border-t border-stone-100 flex items-center gap-2">
                     <button
-                      onClick={() => onSelect(ppm)}
+                      onClick={() => onSelect(item.data)}
                       className="flex-grow bg-white text-stone-700 border border-stone-200 px-4 py-2 rounded-xl text-sm font-medium hover:bg-stone-100 transition-colors flex items-center justify-center gap-2"
                     >
                       Buka & Edit
                     </button>
                     <button
-                      onClick={() => handleDownload(ppm)}
+                      onClick={() => handleDownload(item.data)}
                       className="bg-amber-600 text-white p-2 rounded-xl hover:bg-amber-700 transition-colors shadow-lg shadow-amber-600/20"
                       title="Unduh PDF"
                     >

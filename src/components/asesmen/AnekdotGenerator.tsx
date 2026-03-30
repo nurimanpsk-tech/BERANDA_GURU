@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { PPMData } from '../services/pdfService';
+import { PPMData } from '../../services/pdfService';
 import { ArrowLeft, BookOpen, Plus, Trash2, Download, Sparkles, Loader2, Save, Calendar } from 'lucide-react';
 import { motion } from 'motion/react';
-import { generateText } from '../services/aiService';
+import { generateText } from '../../services/aiService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { User } from '@supabase/supabase-js';
-import PPMWeekSelector from './PPMWeekSelector';
+import PPMWeekSelector from '../ppm/PPMWeekSelector';
 
 interface AnekdotGeneratorProps {
   onBack: () => void;
@@ -143,7 +143,7 @@ export default function AnekdotGenerator({ onBack, ppmData: initialPpmData, user
     doc.setFontSize(10.5);
     doc.setFont('helvetica', 'normal');
     
-    const startY = 20;
+    const startY = 30;
     const lineHeight = 6;
     
     doc.text(`Nama Sekolah`, 20, startY);
@@ -165,7 +165,7 @@ export default function AnekdotGenerator({ onBack, ppmData: initialPpmData, user
     doc.text(`: ${ppmData.informasiUmum.tema} / ${ppmData.informasiUmum.subTema}`, 60, startY + lineHeight * 5);
 
     // Table
-    const tableStartY = startY + lineHeight * 6 + 5;
+    const tableStartY = startY + lineHeight * 6 + 8;
     
     const tableBody = items.map((item, index) => [
       index + 1,
@@ -259,7 +259,7 @@ export default function AnekdotGenerator({ onBack, ppmData: initialPpmData, user
               animate={{ opacity: 1, y: 0 }}
               className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200"
             >
-              <h2 className="font-bold text-lg mb-4 flex items-center gap-2">
+              <h2 className="font-bold text-lg mb-6 flex items-center gap-2">
                 <Plus size={18} className="text-emerald-600" />
                 Tambah Catatan
               </h2>

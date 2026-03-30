@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Save, Calendar, UserCog, UserCircle } from 'lucide-react';
-import { Staff } from '../types';
+import { Staff } from '../../types';
 
 interface AbsensiGuruProps {
   onBack: () => void;

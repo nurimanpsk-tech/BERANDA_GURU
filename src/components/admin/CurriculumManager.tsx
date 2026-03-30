@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Plus, Trash2, Save, Database, FileSpreadsheet, Loader2, Sparkles, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { CurriculumEntry } from '../types';
-import { getSupabase } from '../services/supabaseClient';
+import { CurriculumEntry } from '../../types';
+import { getSupabase } from '../../services/supabaseClient';
 import { User } from '@supabase/supabase-js';
-import { generateJSON } from '../services/aiService';
+import { generateJSON } from '../../services/aiService';
 
 interface CurriculumManagerProps {
   onBack: () => void;
@@ -244,12 +244,12 @@ export default function CurriculumManager({ onBack, user }: CurriculumManagerPro
             <ArrowLeft size={24} className="text-stone-600" />
           </button>
           
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-100 text-indigo-800 text-xs font-semibold uppercase tracking-wider mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100 text-amber-800 text-xs font-semibold uppercase tracking-wider mb-4">
             <Database size={14} />
             Manajemen Data Kurikulum
           </div>
           <h1 className="text-4xl md:text-5xl font-serif font-light mb-4 tracking-tight">
-            Kelola <span className="text-indigo-600 italic">Capaian Pembelajaran</span>
+            Kelola <span className="text-amber-600 italic">Capaian Pembelajaran</span>
           </h1>
           <p className="text-stone-500 max-w-xl mx-auto">
             Input daftar TP dan IKTP dari Pengawas di sini. Data ini akan tersimpan aman di database dan menjadi referensi utama AI.
@@ -268,7 +268,7 @@ export default function CurriculumManager({ onBack, user }: CurriculumManagerPro
             </button>
             <button
               onClick={() => setShowImportModal(true)}
-              className="flex items-center gap-2 bg-indigo-50 border border-indigo-100 px-4 py-2 rounded-xl text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition-colors shadow-sm"
+              className="flex items-center gap-2 bg-amber-50 border border-amber-100 px-4 py-2 rounded-xl text-sm font-medium text-amber-700 hover:bg-amber-100 transition-colors shadow-sm"
             >
               <Sparkles size={18} />
               Impor via AI
@@ -280,7 +280,7 @@ export default function CurriculumManager({ onBack, user }: CurriculumManagerPro
             onClick={handleSave}
             disabled={saving}
             className={`flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-medium transition-all shadow-md disabled:opacity-50 ${
-              isSaved ? 'bg-emerald-600 text-white' : 'bg-indigo-600 text-white hover:bg-indigo-700'
+              isSaved ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white hover:bg-amber-700'
             }`}
           >
             {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
@@ -296,7 +296,7 @@ export default function CurriculumManager({ onBack, user }: CurriculumManagerPro
         >
           {loading ? (
             <div className="p-20 text-center">
-              <Loader2 className="animate-spin mx-auto text-indigo-600 mb-4" size={48} />
+              <Loader2 className="animate-spin mx-auto text-amber-600 mb-4" size={48} />
               <p className="text-stone-500">Memuat data dari database...</p>
             </div>
           ) : (
@@ -321,7 +321,7 @@ export default function CurriculumManager({ onBack, user }: CurriculumManagerPro
                             value={entry.elemen}
                             onChange={(e) => handleChange(entry.id, 'elemen', e.target.value)}
                             placeholder="Contoh: Nilai Agama..."
-                            className="w-full bg-transparent border-none focus:ring-2 focus:ring-indigo-500/20 rounded-lg p-2 text-sm resize-none min-h-[80px]"
+                            className="w-full bg-transparent border-none focus:ring-2 focus:ring-amber-500/20 rounded-lg p-2 text-sm resize-none min-h-[80px]"
                           />
                         </td>
                         <td className="p-2">
@@ -329,7 +329,7 @@ export default function CurriculumManager({ onBack, user }: CurriculumManagerPro
                             value={entry.subElemen}
                             onChange={(e) => handleChange(entry.id, 'subElemen', e.target.value)}
                             placeholder="Contoh: NAB 1..."
-                            className="w-full bg-transparent border-none focus:ring-2 focus:ring-indigo-500/20 rounded-lg p-2 text-sm resize-none min-h-[80px]"
+                            className="w-full bg-transparent border-none focus:ring-2 focus:ring-amber-500/20 rounded-lg p-2 text-sm resize-none min-h-[80px]"
                           />
                         </td>
                         <td className="p-2">
@@ -337,7 +337,7 @@ export default function CurriculumManager({ onBack, user }: CurriculumManagerPro
                             value={entry.tp}
                             onChange={(e) => handleChange(entry.id, 'tp', e.target.value)}
                             placeholder="Isi TP..."
-                            className="w-full bg-transparent border-none focus:ring-2 focus:ring-indigo-500/20 rounded-lg p-2 text-sm resize-none min-h-[80px]"
+                            className="w-full bg-transparent border-none focus:ring-2 focus:ring-amber-500/20 rounded-lg p-2 text-sm resize-none min-h-[80px]"
                           />
                         </td>
                         <td className="p-2">
@@ -345,7 +345,7 @@ export default function CurriculumManager({ onBack, user }: CurriculumManagerPro
                             value={entry.atp}
                             onChange={(e) => handleChange(entry.id, 'atp', e.target.value)}
                             placeholder="Isi ATP..."
-                            className="w-full bg-transparent border-none focus:ring-2 focus:ring-indigo-500/20 rounded-lg p-2 text-sm resize-none min-h-[80px]"
+                            className="w-full bg-transparent border-none focus:ring-2 focus:ring-amber-500/20 rounded-lg p-2 text-sm resize-none min-h-[80px]"
                           />
                         </td>
                         <td className="p-2">
@@ -353,7 +353,7 @@ export default function CurriculumManager({ onBack, user }: CurriculumManagerPro
                             value={entry.indikator}
                             onChange={(e) => handleChange(entry.id, 'indikator', e.target.value)}
                             placeholder="Isi Indikator..."
-                            className="w-full bg-transparent border-none focus:ring-2 focus:ring-indigo-500/20 rounded-lg p-2 text-sm resize-none min-h-[80px]"
+                            className="w-full bg-transparent border-none focus:ring-2 focus:ring-amber-500/20 rounded-lg p-2 text-sm resize-none min-h-[80px]"
                           />
                         </td>
                         <td className="p-2 text-center">
@@ -397,7 +397,7 @@ export default function CurriculumManager({ onBack, user }: CurriculumManagerPro
               >
                 <div className="p-6 border-b border-stone-100 flex justify-between items-center">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-indigo-100 rounded-xl text-indigo-600">
+                    <div className="p-2 bg-amber-100 rounded-xl text-amber-600">
                       <Sparkles size={20} />
                     </div>
                     <div>
@@ -418,7 +418,7 @@ export default function CurriculumManager({ onBack, user }: CurriculumManagerPro
                     value={importText}
                     onChange={(e) => setImportText(e.target.value)}
                     placeholder="Tempel teks Capaian Pembelajaran (CP) di sini..."
-                    className="w-full h-64 bg-stone-50 border border-stone-200 rounded-2xl p-4 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none"
+                    className="w-full h-64 bg-stone-50 border border-stone-200 rounded-2xl p-4 text-sm outline-none focus:ring-2 focus:ring-amber-500/20 resize-none"
                   />
                   <div className="mt-4 p-3 bg-amber-50 rounded-xl border border-amber-100 flex gap-3">
                     <div className="text-amber-600 mt-0.5">
@@ -440,7 +440,7 @@ export default function CurriculumManager({ onBack, user }: CurriculumManagerPro
                   <button
                     onClick={handleAIImport}
                     disabled={importing || !importText.trim()}
-                    className="flex items-center gap-2 bg-indigo-600 text-white px-8 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20 disabled:opacity-50"
+                    className="flex items-center gap-2 bg-amber-600 text-white px-8 py-2 rounded-xl text-sm font-medium hover:bg-amber-700 transition-all shadow-lg shadow-amber-600/20 disabled:opacity-50"
                   >
                     {importing ? <Loader2 className="animate-spin" size={18} /> : <Sparkles size={18} />}
                     {importing ? 'Memproses...' : 'Proses dengan AI'}

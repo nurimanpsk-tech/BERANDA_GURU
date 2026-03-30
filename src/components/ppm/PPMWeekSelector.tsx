@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
-import { ppmService } from '../services/ppmService';
-import { PPMData } from '../services/pdfService';
+import { ppmService } from '../../services/ppmService';
+import { PPMData } from '../../services/pdfService';
 import { Calendar, ChevronDown, Loader2 } from 'lucide-react';
 
 interface PPMWeekSelectorProps {
@@ -22,7 +22,7 @@ export default function PPMWeekSelector({ currentPpm, onSelect, user }: PPMWeekS
       }
       try {
         const data = await ppmService.getAllPPM(user.id);
-        setAllPpms(data);
+        setAllPpms(data.map(item => item.data));
       } catch (err) {
         console.error('Failed to fetch PPMs for selector:', err);
       } finally {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Save, Calendar, Users } from 'lucide-react';
-import { Student, AttendanceRecord, Class } from '../types';
+import { Student, AttendanceRecord, Class } from '../../types';
 
 interface AbsensiSiswaProps {
   onBack: () => void;

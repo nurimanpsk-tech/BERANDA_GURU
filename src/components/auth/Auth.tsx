@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { getSupabase } from '../services/supabaseClient';
+import { getSupabase } from '../../services/supabaseClient';
 import { motion, AnimatePresence } from 'motion/react';
 import { Mail, Lock, User, ArrowRight, Loader2, Sparkles, GraduationCap, Eye, EyeOff } from 'lucide-react';
 
@@ -82,16 +82,16 @@ export default function Auth() {
             <div className="flex bg-stone-100 p-1 rounded-xl mb-8">
               <button
                 onClick={() => setIsLogin(true)}
-                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
-                  isLogin ? 'bg-white text-stone-800 shadow-sm' : 'text-stone-500 hover:text-stone-700'
+                className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+                  isLogin ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/20' : 'text-stone-500 hover:text-stone-700'
                 }`}
               >
                 Masuk
               </button>
               <button
                 onClick={() => setIsLogin(false)}
-                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
-                  !isLogin ? 'bg-white text-stone-800 shadow-sm' : 'text-stone-500 hover:text-stone-700'
+                className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+                  !isLogin ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/20' : 'text-stone-500 hover:text-stone-700'
                 }`}
               >
                 Daftar

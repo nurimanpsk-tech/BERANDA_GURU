@@ -55,6 +55,22 @@ export const ppmService = {
       .order('updated_at', { ascending: false });
 
     if (error) throw error;
-    return data.map(item => item.data as PPMData);
+    return data.map(item => ({
+      id: item.id,
+      data: item.data as PPMData
+    }));
+  },
+
+  async deletePPM(id: string) {
+    const supabase = getSupabase();
+    if (!supabase) return null;
+
+    const { error } = await supabase
+      .from('ppm_data')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return true;
   }
 };

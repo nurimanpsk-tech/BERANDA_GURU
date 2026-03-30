@@ -47,7 +47,7 @@ export default function PPMMenu({ onBack, onSelectCreate, onSelectHistory }: PPM
             <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-6 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
               <PlusCircle size={32} />
             </div>
-            <h3 className="text-2xl font-serif mb-2">Buat PPM Baru</h3>
+            <h3 className="text-2xl font-bold mb-2">Buat PPM</h3>
             <p className="text-stone-500 text-sm leading-relaxed">
               Susun perencanaan pembelajaran otomatis menggunakan AI sesuai tema dan sub-tema yang Anda inginkan.
             </p>
@@ -62,7 +62,7 @@ export default function PPMMenu({ onBack, onSelectCreate, onSelectHistory }: PPM
             <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-6 group-hover:bg-amber-600 group-hover:text-white transition-colors">
               <History size={32} />
             </div>
-            <h3 className="text-2xl font-serif mb-2">Riwayat PPM</h3>
+            <h3 className="text-2xl font-bold mb-2">Riwayat PPM</h3>
             <p className="text-stone-500 text-sm leading-relaxed">
               Lihat, edit, atau unduh kembali PPM yang telah Anda buat sebelumnya yang tersimpan di cloud.
             </p>
