@@ -240,7 +240,7 @@ export default function PPMHistory({ onBack, onSelect, user }: PPMHistoryProps) 
                   
                   <div className="p-4 bg-stone-50 border-t border-stone-100 flex items-center gap-2">
                     <button
-                      onClick={() => onSelect(item.data)}
+                      onClick={() => onSelect({ ...item.data, id: item.id })}
                       className="flex-grow bg-white text-stone-700 border border-stone-200 px-4 py-2 rounded-xl text-sm font-medium hover:bg-stone-100 transition-colors flex items-center justify-center gap-2"
                     >
                       Buka & Edit

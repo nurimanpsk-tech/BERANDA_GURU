@@ -55,7 +55,7 @@ export default function MaintenanceMode() {
         </h1>
         
         <p className="text-stone-500 text-lg mb-12 leading-relaxed max-w-lg mx-auto">
-          Mohon maaf atas ketidaknyamanannya. Saat ini kami sedang melakukan pembaruan sistem untuk memberikan pengalaman yang lebih baik bagi Anda.
+          Mohon maaf atas ketidak nyamanannya. Saat ini kami sedang melakukan pembaruan sistem untuk memberikan pengalaman yang lebih baik bagi Anda.
         </p>
 
         {/* Status Cards */}
@@ -75,7 +75,7 @@ export default function MaintenanceMode() {
             </div>
             <div>
               <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Hubungi Kami</p>
-              <p className="font-bold text-stone-700">nurimanpsk@gmail.com</p>
+              <p className="font-bold text-stone-700">nurimanps0@gmail.com</p>
             </div>
           </div>
         </div>

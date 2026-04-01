@@ -9,8 +9,8 @@ export const ppmService = {
       return null;
     }
 
-    // Create a more unique ID using userId, theme, subtheme, and date
-    const uniqueId = `${userId}_${data.informasiUmum.tema}_${data.informasiUmum.subTema}_${data.informasiUmum.hariTanggal}`
+    // Use existing ID if available, otherwise generate a unique one
+    const uniqueId = data.id || `${userId}_${data.informasiUmum.tema}_${data.informasiUmum.subTema}_${data.informasiUmum.hariTanggal}`
       .toLowerCase()
       .replace(/[^a-z0-9]/g, '_');
 

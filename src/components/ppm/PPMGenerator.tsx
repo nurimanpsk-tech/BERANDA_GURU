@@ -17,6 +17,7 @@ interface PPMGeneratorProps {
 export default function PPMGenerator({ onBack, onGenerate, initialData, user }: PPMGeneratorProps) {
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
+  const [generationStatus, setGenerationStatus] = useState('');
   const [ppmData, setPpmData] = useState<PPMData | null>(initialData);
   const [error, setError] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -147,8 +148,10 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
 
     setLoading(true);
     setError(null);
+    setGenerationStatus('Menghubungkan ke AI...');
     try {
       // Fetch curriculum context from Supabase
+      setGenerationStatus('Mengambil referensi kurikulum...');
       let curriculumContext = '';
       if (user) {
         const { data: curriculumData, error: curriculumError } = await supabase
@@ -164,10 +167,14 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
       }
 
       const combinedMingguSemester = `Minggu ke-${schoolInfo.minggu} / Semester ${schoolInfo.semester}`;
+      setGenerationStatus('Menyusun rencana pembelajaran mendalam...');
       const data = await generatePPM(prompt, curriculumContext, schoolInfo.hariTanggal);
+      
+      setGenerationStatus('Memfinalisasi data...');
       const fullData = {
         ...data,
         ...schoolInfo,
+        id: ppmData?.id, // Preserve ID if editing
         informasiUmum: {
           ...data.informasiUmum,
           usia: schoolInfo.usia,
@@ -180,10 +187,13 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
       onGenerate(fullData); // Update parent state
       
       // Auto-save to Supabase after generation
+      setGenerationStatus('Menyimpan ke Cloud...');
       await handleSaveToSupabase(fullData);
+      setGenerationStatus('');
     } catch (err) {
       console.error(err);
       setError('Gagal menghasilkan PPM. Silakan coba lagi.');
+      setGenerationStatus('');
     } finally {
       setLoading(false);
     }
@@ -375,10 +385,15 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
               <button
                 onClick={handleGenerate}
                 disabled={loading || !prompt.trim()}
-                className="bg-[#1A1A1A] text-white px-8 py-3 rounded-xl font-medium flex items-center gap-2 hover:bg-stone-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-black/10"
+                className="bg-[#1A1A1A] text-white px-8 py-3 rounded-xl font-medium flex flex-col items-center justify-center min-w-[160px] hover:bg-stone-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-black/10"
               >
-                {loading ? <Loader2 className="animate-spin" size={18} /> : <Sparkles size={18} />}
-                {loading ? 'Menyusun...' : 'Buat PPM'}
+                <div className="flex items-center gap-2">
+                  {loading ? <Loader2 className="animate-spin" size={18} /> : <Sparkles size={18} />}
+                  {loading ? 'Menyusun...' : 'Buat PPM'}
+                </div>
+                {loading && generationStatus && (
+                  <span className="text-[10px] font-normal opacity-70 mt-1">{generationStatus}</span>
+                )}
               </button>
             </div>
           </div>

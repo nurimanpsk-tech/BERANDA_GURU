@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, BookOpen, CheckSquare, Palette, Image, ArrowRight, ClipboardCheck, ArrowLeft, GraduationCap, Users, Settings, Wallet, UserCheck, UserCog, UserCircle, Mail, Inbox, Send, Contact, Megaphone, Database, LogOut, User as UserIcon, BookText } from 'lucide-react';
+import { Sparkles, BookOpen, CheckSquare, Palette, Image, ArrowRight, ClipboardCheck, ArrowLeft, GraduationCap, Users, Settings, Wallet, UserCheck, UserCog, UserCircle, Mail, Inbox, Send, Contact, Megaphone, Database, LogOut, User as UserIcon, BookText, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { User } from '@supabase/supabase-js';
 
@@ -46,6 +46,14 @@ export default function Home({
       icon: <Users size={28} className="text-emerald-600" />,
       color: 'bg-emerald-50 hover:bg-emerald-100 border-emerald-200',
       textColor: 'text-emerald-900',
+    },
+    {
+      id: 'system-monitor',
+      title: 'Monitor Sistem',
+      description: 'Pantau CPU, RAM, Storage, dan kuota API secara real-time.',
+      icon: <Activity size={28} className="text-amber-600" />,
+      color: 'bg-amber-50 hover:bg-amber-100 border-amber-200',
+      textColor: 'text-amber-900',
     }
   ];
 
@@ -176,6 +184,15 @@ export default function Home({
           color: 'bg-emerald-50 hover:bg-emerald-100 border-emerald-200',
           textColor: 'text-emerald-900',
           action: () => onNavigate('users')
+        },
+        {
+          id: 'system-monitor',
+          title: 'Monitor Sistem',
+          description: 'Pantau CPU, RAM, Storage, dan kuota API secara real-time.',
+          icon: <Activity size={32} className="text-amber-600" />,
+          color: 'bg-amber-50 hover:bg-amber-100 border-amber-200',
+          textColor: 'text-amber-900',
+          action: () => onNavigate('system-monitor')
         },
         {
           id: 'pengaturan',

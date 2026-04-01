@@ -8,7 +8,7 @@ export default defineConfig(({mode}) => {
   return {
     plugins: [react(), tailwindcss()],
     define: {
-      'process.env.GITHUB_TOKENS': JSON.stringify(env.GITHUB_TOKENS),
+      'process.env.GITHUB_TOKENS': JSON.stringify(env.VITE_GITHUB_TOKENS || env.GITHUB_TOKENS),
     },
     resolve: {
       alias: {

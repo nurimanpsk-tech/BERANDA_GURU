@@ -9,6 +9,7 @@ export interface CurriculumEntry {
 }
 
 export interface PPMData {
+  id?: string;
   informasiUmum: {
     tema: string;
     subTema: string;
