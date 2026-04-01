@@ -8,6 +8,11 @@ import AnekdotGenerator from './components/asesmen/AnekdotGenerator';
 import CeklisGenerator from './components/asesmen/CeklisGenerator';
 import HasilKaryaGenerator from './components/asesmen/HasilKaryaGenerator';
 import FotoBerseriGenerator from './components/asesmen/FotoBerseriGenerator';
+import AssessmentHistory from './components/asesmen/AssessmentHistory';
+import JurnalGuru from './components/jurnal/JurnalGuru';
+import JurnalKS from './components/jurnal/JurnalKS';
+import ClassManager from './components/kelas/ClassManager';
+import SchoolManager from './components/settings/SchoolManager';
 import AnnouncementGenerator from './components/announcement/AnnouncementGenerator';
 import CurriculumManager from './components/admin/CurriculumManager';
 import UserManager from './components/admin/UserManager';
@@ -332,6 +337,24 @@ export default function App() {
           user={user}
         />
       )}
+      {currentPage === 'asesmen-history' && (
+        <AssessmentHistory 
+          onBack={navigateBackToAsesmen} 
+          user={user}
+        />
+      )}
+      {currentPage === 'jurnal-guru' && (
+        <JurnalGuru onBack={() => navigateTo('home')} />
+      )}
+      {currentPage === 'jurnal-ks' && (
+        <JurnalKS onBack={() => navigateTo('home')} />
+      )}
+      {currentPage === 'data-kelas' && (
+        <ClassManager onBack={() => navigateTo('pengaturan')} user={user} />
+      )}
+      {currentPage === 'data-sekolah' && (
+        <SchoolManager onBack={() => navigateTo('pengaturan')} user={user} />
+      )}
       {currentPage === 'pengumuman' && (
         <AnnouncementGenerator 
           onBack={() => navigateTo('home')} 
@@ -374,6 +397,7 @@ export default function App() {
           user={user}
           profile={profile}
           onLogout={handleLogout}
+          onNavigate={navigateTo}
         />
       )}
       {currentPage === 'uang-kas' && (

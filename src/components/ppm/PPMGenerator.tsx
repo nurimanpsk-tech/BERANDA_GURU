@@ -4,7 +4,7 @@ import { getSupabase } from '../../services/supabaseClient';
 import { generatePPM } from '../../services/aiService';
 import { generatePPMPDF, PPMData } from '../../services/pdfService';
 import { ppmService } from '../../services/ppmService';
-import { FileText, Sparkles, Download, Loader2, CheckCircle2, AlertCircle, ArrowLeft, Save } from 'lucide-react';
+import { FileText, Sparkles, Download, Loader2, CheckCircle2, AlertCircle, ArrowLeft, Save, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface PPMGeneratorProps {
@@ -20,6 +20,7 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
   const [ppmData, setPpmData] = useState<PPMData | null>(initialData);
   const [error, setError] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [classes, setClasses] = useState<any[]>([]);
 
   const getAcademicYear = () => {
     const now = new Date();
@@ -68,6 +69,56 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
     alokasiWaktu: initialData?.informasiUmum?.alokasiWaktu || '',
     hariTanggal: initialData?.informasiUmum?.hariTanggal || '',
   });
+
+  // Fetch School and Class data for auto-fill
+  useEffect(() => {
+    const fetchSyncData = async () => {
+      const supabase = getSupabase();
+      if (!supabase || !user) return;
+
+      try {
+        // 1. Fetch School Name from Profiles
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('school_name')
+          .eq('id', user.id)
+          .single();
+
+        if (profileData?.school_name && !initialData) {
+          setSchoolInfo(prev => ({ ...prev, schoolName: profileData.school_name }));
+        }
+
+        // 2. Fetch Class Data
+        const { data: classesData } = await supabase
+          .from('school_classes')
+          .select('*')
+          .eq('user_id', user.id);
+
+        if (classesData) {
+          setClasses(classesData);
+          
+          // Auto-fill KS and Guru based on current usia if not initialData
+          if (!initialData) {
+            const currentGroup = schoolInfo.usia.includes('Kelompok A') ? 'Kelompok A' : 'Kelompok B';
+            const classData = classesData.find(c => c.group_name === currentGroup);
+            if (classData) {
+              setSchoolInfo(prev => ({
+                ...prev,
+                principalName: classData.principal_name || '',
+                teacherName: classData.teacher_name || '',
+                // Fallback school name if profile is empty
+                schoolName: prev.schoolName || classData.school_name || ''
+              }));
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching sync data:', err);
+      }
+    };
+
+    fetchSyncData();
+  }, [user]);
 
   // Update prompt if initialData exists (optional, maybe extract theme)
   useEffect(() => {
@@ -141,6 +192,22 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
   const handleDownload = () => {
     if (ppmData) {
       generatePPMPDF(ppmData);
+    }
+  };
+
+  const handleReset = () => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus draf ini dan mulai dari awal? (Data di Cloud tidak akan terhapus)')) {
+      setPrompt('');
+      setPpmData(null);
+      setError(null);
+      setSaveStatus('idle');
+      setSchoolInfo(prev => ({
+        ...prev,
+        alokasiWaktu: '',
+        hariTanggal: '',
+        minggu: '1',
+        semester: 'I'
+      }));
     }
   };
 
@@ -225,7 +292,18 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
               <label className="block text-xs font-bold uppercase tracking-widest text-stone-400 mb-2">Usia</label>
               <select
                 value={schoolInfo.usia}
-                onChange={(e) => setSchoolInfo({ ...schoolInfo, usia: e.target.value })}
+                onChange={(e) => {
+                  const newUsia = e.target.value;
+                  const currentGroup = newUsia.includes('Kelompok A') ? 'Kelompok A' : 'Kelompok B';
+                  const classData = classes.find(c => c.group_name === currentGroup);
+                  
+                  setSchoolInfo({ 
+                    ...schoolInfo, 
+                    usia: newUsia,
+                    principalName: classData?.principal_name || schoolInfo.principalName,
+                    teacherName: classData?.teacher_name || schoolInfo.teacherName,
+                  });
+                }}
                 className="w-full bg-white border border-stone-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all appearance-none"
               >
                 <option value="4 - 5 Tahun (Kelompok A)">4 - 5 Tahun (Kelompok A)</option>
@@ -284,7 +362,16 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
               placeholder="Contoh: Aku dan Mimpiku, Alam Semesta, Budaya Lokal..."
               className="w-full bg-stone-50 border border-stone-200 rounded-2xl px-4 py-4 min-h-[120px] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all resize-none text-lg mb-4"
             />
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-3">
+              {(prompt.trim() || ppmData) && (
+                <button
+                  onClick={handleReset}
+                  className="bg-white text-red-600 border border-red-100 px-6 py-3 rounded-xl font-medium flex items-center gap-2 hover:bg-red-50 transition-all"
+                >
+                  <Trash2 size={18} />
+                  Hapus Draf
+                </button>
+              )}
               <button
                 onClick={handleGenerate}
                 disabled={loading || !prompt.trim()}

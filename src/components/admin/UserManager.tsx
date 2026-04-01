@@ -23,6 +23,10 @@ interface Profile {
   email?: string;
   role: string;
   full_name?: string;
+  school_name?: string;
+  teacher_name?: string;
+  principal_name?: string;
+  group?: string;
   created_at: string;
   updated_at?: string;
   last_sign_in_at?: string;
@@ -163,9 +167,8 @@ export default function UserManager({ onBack, currentUser }: UserManagerProps) {
                 <thead>
                   <tr className="bg-stone-50/50 border-b border-stone-100">
                     <th className="px-8 py-5 text-xs font-bold text-stone-400 uppercase tracking-widest">Pengguna</th>
+                    <th className="px-8 py-5 text-xs font-bold text-stone-400 uppercase tracking-widest">Sekolah & Guru</th>
                     <th className="px-8 py-5 text-xs font-bold text-stone-400 uppercase tracking-widest">Peran</th>
-                    <th className="px-8 py-5 text-xs font-bold text-stone-400 uppercase tracking-widest">Terdaftar Pada</th>
-                    <th className="px-8 py-5 text-xs font-bold text-stone-400 uppercase tracking-widest">Status</th>
                     <th className="px-8 py-5 text-xs font-bold text-stone-400 uppercase tracking-widest text-right">Aksi</th>
                   </tr>
                 </thead>
@@ -192,6 +195,12 @@ export default function UserManager({ onBack, currentUser }: UserManagerProps) {
                         </div>
                       </td>
                       <td className="px-8 py-5">
+                        <div className="space-y-1">
+                          <p className="text-sm font-bold text-stone-700">{p.school_name || '-'}</p>
+                          <p className="text-xs text-stone-500">{p.teacher_name || '-'} ({p.group || '-'})</p>
+                        </div>
+                      </td>
+                      <td className="px-8 py-5">
                         <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
                           p.role === 'admin' 
                             ? 'bg-amber-50 text-amber-600' 
@@ -199,18 +208,6 @@ export default function UserManager({ onBack, currentUser }: UserManagerProps) {
                         }`}>
                           {p.role === 'admin' ? <Shield size={10} /> : <Users size={10} />}
                           {p.role}
-                        </span>
-                      </td>
-                      <td className="px-8 py-5">
-                        <div className="flex items-center gap-2 text-sm text-stone-600">
-                          <Calendar size={14} className="text-stone-400" />
-                          {formatDate(p.updated_at || p.created_at)}
-                        </div>
-                      </td>
-                      <td className="px-8 py-5">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase tracking-widest">
-                          <UserCheck size={10} />
-                          Aktif
                         </span>
                       </td>
                       <td className="px-8 py-5 text-right">

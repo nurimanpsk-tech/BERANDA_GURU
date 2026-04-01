@@ -1,11 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { ArrowLeft, Image as ImageIcon, Plus, Trash2, Download, Camera, BookOpen, Sparkles, Calendar } from 'lucide-react';
+import { ArrowLeft, Image as ImageIcon, Plus, Trash2, Download, Camera, BookOpen, Sparkles, Calendar, Save } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { PPMData } from '../../services/pdfService';
 import { generateText } from '../../services/aiService';
 import { User } from '@supabase/supabase-js';
+import { assessmentService } from '../../services/assessmentService';
 import PPMWeekSelector from '../ppm/PPMWeekSelector';
 
 interface FotoBerseriImage {
@@ -31,6 +32,7 @@ interface FotoBerseriGeneratorProps {
 
 export default function FotoBerseriGenerator({ onBack, ppmData: initialPpmData, user }: FotoBerseriGeneratorProps) {
   const [ppmData, setPpmData] = useState<PPMData>(initialPpmData);
+  const [selectedGroup, setSelectedGroup] = useState<'Kelompok A' | 'Kelompok B'>('Kelompok B');
   const [entries, setEntries] = useState<FotoBerseriEntry[]>([
     { 
       id: '1', 
@@ -42,6 +44,32 @@ export default function FotoBerseriGenerator({ onBack, ppmData: initialPpmData, 
   ]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSaveHistory = async () => {
+    if (!user || entries.length === 0) return;
+    
+    setIsSaving(true);
+    try {
+      const historyData = {
+        ppmId: ppmData.id,
+        group: selectedGroup,
+        entries,
+        schoolName: ppmData.schoolName,
+        teacherName: ppmData.teacherName,
+        tema: ppmData.informasiUmum.tema,
+        subTema: ppmData.informasiUmum.subTema
+      };
+
+      await assessmentService.saveAssessment(user.id, 'foto_berseri', historyData);
+      alert('Riwayat asesmen berhasil disimpan!');
+    } catch (error) {
+      console.error('Error saving assessment history:', error);
+      alert('Gagal menyimpan riwayat asesmen.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   const handleAddEntry = () => {
@@ -244,7 +272,7 @@ Format output: Langsung berikan 3 poin deskripsi menggunakan simbol bullet (•)
       const midX = pageWidth / 2 + 10;
       
       doc.text(`Fase/ Kelompok/ Semester`, leftX, startY);
-      doc.text(`: Fondasi/ B/ II`, leftX + 45, startY);
+      doc.text(`: Fondasi/ ${selectedGroup.split(' ')[1]}/ II`, leftX + 45, startY);
       
       doc.text(`Hari, Tanggal`, leftX, startY + lineHeight);
       let headerDate = '';
@@ -336,7 +364,7 @@ Format output: Langsung berikan 3 poin deskripsi menggunakan simbol bullet (•)
       doc.text(ppmData.principalName || '', pageWidth * 0.25, finalY + 30, { align: 'center' });
       
       doc.setFont('helvetica', 'normal');
-      doc.text('Guru Kelas B', pageWidth * 0.75, finalY + 5, { align: 'center' });
+      doc.text(`Guru Kelas ${selectedGroup.split(' ')[1]}`, pageWidth * 0.75, finalY + 5, { align: 'center' });
       doc.setFont('helvetica', 'bold');
       doc.text(ppmData.teacherName || '', pageWidth * 0.75, finalY + 30, { align: 'center' });
 
@@ -366,8 +394,13 @@ Format output: Langsung berikan 3 poin deskripsi menggunakan simbol bullet (•)
           </h1>
         </header>
 
-        <div className="mb-8 max-w-md mx-auto">
-          <PPMWeekSelector currentPpm={ppmData} onSelect={setPpmData} user={user} />
+        <div className="mb-8 max-w-md mx-auto space-y-4">
+          <PPMWeekSelector 
+            currentPpm={ppmData} 
+            onSelect={setPpmData} 
+            onGroupChange={setSelectedGroup}
+            user={user} 
+          />
         </div>
 
         <div className="bg-white rounded-3xl shadow-xl shadow-stone-200/50 border border-stone-200 overflow-hidden mb-8">
@@ -557,6 +590,19 @@ Format output: Langsung berikan 3 poin deskripsi menggunakan simbol bullet (•)
                 Tambah Baris Penilaian
               </button>
               
+              <button 
+                onClick={handleSaveHistory}
+                disabled={isSaving}
+                className="flex-[0.5] flex items-center justify-center gap-2 py-4 rounded-2xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all disabled:opacity-50"
+              >
+                {isSaving ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <Save size={20} />
+                )}
+                Simpan Riwayat
+              </button>
+
               <button 
                 onClick={handleDownloadPDF}
                 disabled={isGenerating}

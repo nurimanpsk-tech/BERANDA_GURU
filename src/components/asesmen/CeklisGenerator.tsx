@@ -7,6 +7,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { User } from '@supabase/supabase-js';
 import { getSupabase } from '../../services/supabaseClient';
+import { assessmentService } from '../../services/assessmentService';
 import PPMWeekSelector from '../ppm/PPMWeekSelector';
 
 interface CeklisGeneratorProps {
@@ -32,19 +33,71 @@ export default function CeklisGenerator({ onBack, ppmData: initialPpmData, user 
   const [ppmData, setPpmData] = useState<PPMData>(initialPpmData);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedDay, setSelectedDay] = useState<string>('Senin');
+  const [selectedGroup, setSelectedGroup] = useState<'Kelompok A' | 'Kelompok B'>('Kelompok B');
   const [students, setStudents] = useState<Student[]>([
-    { id: '1', name: 'Geo' },
-    { id: '2', name: 'Meera' },
-    { id: '3', name: 'Via' },
-    { id: '4', name: 'Freya' },
-    { id: '5', name: 'Zea' }
+    { id: '1', name: 'Arsvila' },
+    { id: '2', name: 'Baim' },
+    { id: '3', name: 'Caca' },
+    { id: '4', name: 'Dafa' },
+    { id: '5', name: 'Elang' }
   ]);
+
+  // Update students when group changes
+  const handleGroupChange = (group: 'Kelompok A' | 'Kelompok B') => {
+    setSelectedGroup(group);
+    if (group === 'Kelompok A') {
+      setStudents([
+        { id: '1', name: 'Geo' },
+        { id: '2', name: 'Meera' },
+        { id: '3', name: 'Via' },
+        { id: '4', name: 'Freya' },
+        { id: '5', name: 'Zea' }
+      ]);
+    } else {
+      setStudents([
+        { id: '1', name: 'Arsvila' },
+        { id: '2', name: 'Baim' },
+        { id: '3', name: 'Caca' },
+        { id: '4', name: 'Dafa' },
+        { id: '5', name: 'Elang' }
+      ]);
+    }
+  };
   const [newStudentName, setNewStudentName] = useState('');
   
   // Assessment Data
   const [selectedObjectives, setSelectedObjectives] = useState<string[]>([]);
   const [assessmentItems, setAssessmentItems] = useState<AssessmentItem[]>([]);
   const [loadingAI, setLoadingAI] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSaveHistory = async () => {
+    if (!user || assessmentItems.length === 0) return;
+    
+    setIsSaving(true);
+    try {
+      const historyData = {
+        ppmId: ppmData.id,
+        date: selectedDate,
+        day: selectedDay,
+        group: selectedGroup,
+        students,
+        items: assessmentItems,
+        schoolName: ppmData.schoolName,
+        teacherName: ppmData.teacherName,
+        tema: ppmData.informasiUmum.tema,
+        subTema: ppmData.informasiUmum.subTema
+      };
+
+      await assessmentService.saveAssessment(user.id, 'ceklis', historyData);
+      alert('Riwayat asesmen berhasil disimpan!');
+    } catch (error) {
+      console.error('Error saving assessment history:', error);
+      alert('Gagal menyimpan riwayat asesmen.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   // Helpers
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -217,7 +270,7 @@ export default function CeklisGenerator({ onBack, ppmData: initialPpmData, user 
     const infoLabels = [
       { label: 'Nama Sekolah', value: ppmData.schoolName || 'TK BALEGONDO 1' },
       { label: 'Nama Guru Kelas', value: ppmData.teacherName || '' },
-      { label: 'Fase/Kelas/Usia', value: `Fondasi/ B/ ${(ppmData.informasiUmum.usia || '').split(' ')[0]}` },
+      { label: 'Fase/Kelas/Usia', value: `Fondasi/ ${selectedGroup.split(' ')[1]}/ ${(ppmData.informasiUmum.usia || '').split(' ')[0]}` },
       { label: 'Tahun Ajaran', value: (ppmData.academicYear || '').replace('TAHUN PELAJARAN ', '') },
       { label: 'Semester/Bulan', value: (ppmData.informasiUmum.mingguSemester || '').split('/')[1]?.trim() || '' },
       { label: 'Tema / Sub Tema', value: `${ppmData.informasiUmum.tema} / ${ppmData.informasiUmum.subTema}` },
@@ -320,7 +373,7 @@ export default function CeklisGenerator({ onBack, ppmData: initialPpmData, user 
     doc.text(ppmData.principalName || 'KUNLISTYANI, S.Pd', 50, finalY + 30, { align: 'center' });
 
     doc.setFont('helvetica', 'normal');
-    doc.text('Guru Kelas B', 160, finalY + 5, { align: 'center' });
+    doc.text(`Guru Kelas ${selectedGroup.split(' ')[1]}`, 160, finalY + 5, { align: 'center' });
     doc.setFont('helvetica', 'bold');
     doc.text(ppmData.teacherName || 'NABILA ANIN SAU\'DAH', 160, finalY + 30, { align: 'center' });
 
@@ -346,7 +399,12 @@ export default function CeklisGenerator({ onBack, ppmData: initialPpmData, user 
         </header>
 
         <div className="mb-8 max-w-md mx-auto">
-          <PPMWeekSelector currentPpm={ppmData} onSelect={setPpmData} user={user} />
+          <PPMWeekSelector 
+            currentPpm={ppmData} 
+            onSelect={setPpmData} 
+            onGroupChange={handleGroupChange}
+            user={user} 
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -464,15 +522,27 @@ export default function CeklisGenerator({ onBack, ppmData: initialPpmData, user 
                   <Save size={18} className="text-stone-600" />
                   Tabel Asesmen
                 </h2>
-                {assessmentItems.length > 0 && (
-                  <button 
-                    onClick={handleDownloadPDF}
-                    className="bg-stone-800 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-stone-900 transition-colors"
-                  >
-                    <Download size={16} />
-                    Unduh PDF
-                  </button>
-                )}
+                <div className="flex gap-2">
+                  {assessmentItems.length > 0 && (
+                    <>
+                      <button 
+                        onClick={handleSaveHistory}
+                        disabled={isSaving}
+                        className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                      >
+                        {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+                        Simpan Riwayat
+                      </button>
+                      <button 
+                        onClick={handleDownloadPDF}
+                        className="bg-stone-800 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-stone-900 transition-colors"
+                      >
+                        <Download size={16} />
+                        Unduh PDF
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
 
               {assessmentItems.length === 0 ? (

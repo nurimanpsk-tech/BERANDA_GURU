@@ -6,6 +6,7 @@ import { generateText } from '../../services/aiService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { User } from '@supabase/supabase-js';
+import { assessmentService } from '../../services/assessmentService';
 import PPMWeekSelector from '../ppm/PPMWeekSelector';
 
 interface AnekdotGeneratorProps {
@@ -26,8 +27,35 @@ interface AnecdoteItem {
 
 export default function AnekdotGenerator({ onBack, ppmData: initialPpmData, user }: AnekdotGeneratorProps) {
   const [ppmData, setPpmData] = useState<PPMData>(initialPpmData);
+  const [selectedGroup, setSelectedGroup] = useState<'Kelompok A' | 'Kelompok B'>('Kelompok B');
   const [items, setItems] = useState<AnecdoteItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSaveHistory = async () => {
+    if (!user || items.length === 0) return;
+    
+    setIsSaving(true);
+    try {
+      const historyData = {
+        ppmId: ppmData.id,
+        group: selectedGroup,
+        items,
+        schoolName: ppmData.schoolName,
+        teacherName: ppmData.teacherName,
+        tema: ppmData.informasiUmum.tema,
+        subTema: ppmData.informasiUmum.subTema
+      };
+
+      await assessmentService.saveAssessment(user.id, 'anekdot', historyData);
+      alert('Riwayat asesmen berhasil disimpan!');
+    } catch (error) {
+      console.error('Error saving assessment history:', error);
+      alert('Gagal menyimpan riwayat asesmen.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
   
   // Form State
   const [selectedDay, setSelectedDay] = useState<string>('Senin');
@@ -153,7 +181,7 @@ export default function AnekdotGenerator({ onBack, ppmData: initialPpmData, user
     doc.text(`: ${ppmData.teacherName || ''}`, 60, startY + lineHeight);
     
     doc.text(`Fase/Kelas/Usia`, 20, startY + lineHeight * 2);
-    doc.text(`: Fondasi/ B/ ${(ppmData.informasiUmum.usia || '').split(' ')[0]}`, 60, startY + lineHeight * 2);
+    doc.text(`: Fondasi/ ${selectedGroup.split(' ')[1]}/ ${(ppmData.informasiUmum.usia || '').split(' ')[0]}`, 60, startY + lineHeight * 2);
     
     doc.text(`Tahun Ajaran`, 20, startY + lineHeight * 3);
     doc.text(`: ${(ppmData.academicYear || '').replace('TAHUN PELAJARAN ', '')}`, 60, startY + lineHeight * 3);
@@ -222,7 +250,7 @@ export default function AnekdotGenerator({ onBack, ppmData: initialPpmData, user
     doc.text(ppmData.principalName || '', 50, finalY + 30, { align: 'center' });
 
     doc.setFont('helvetica', 'normal');
-    doc.text('Guru Kelas B', 160, finalY + 5, { align: 'center' });
+    doc.text(`Guru Kelas ${selectedGroup.split(' ')[1]}`, 160, finalY + 5, { align: 'center' });
     doc.setFont('helvetica', 'bold');
     doc.text(ppmData.teacherName || '', 160, finalY + 30, { align: 'center' });
 
@@ -247,8 +275,13 @@ export default function AnekdotGenerator({ onBack, ppmData: initialPpmData, user
           </h1>
         </header>
 
-        <div className="mb-8 max-w-md mx-auto">
-          <PPMWeekSelector currentPpm={ppmData} onSelect={setPpmData} user={user} />
+        <div className="mb-8 max-w-md mx-auto space-y-4">
+          <PPMWeekSelector 
+            currentPpm={ppmData} 
+            onSelect={setPpmData} 
+            onGroupChange={setSelectedGroup}
+            user={user} 
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -377,15 +410,27 @@ export default function AnekdotGenerator({ onBack, ppmData: initialPpmData, user
                   <Save size={18} className="text-stone-600" />
                   Daftar Catatan ({items.length})
                 </h2>
-                {items.length > 0 && (
-                  <button 
-                    onClick={handleDownloadPDF}
-                    className="bg-stone-800 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-stone-900 transition-colors"
-                  >
-                    <Download size={16} />
-                    Unduh PDF
-                  </button>
-                )}
+                <div className="flex gap-2">
+                  {items.length > 0 && (
+                    <>
+                      <button 
+                        onClick={handleSaveHistory}
+                        disabled={isSaving}
+                        className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                      >
+                        {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+                        Simpan Riwayat
+                      </button>
+                      <button 
+                        onClick={handleDownloadPDF}
+                        className="bg-stone-800 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-stone-900 transition-colors"
+                      >
+                        <Download size={16} />
+                        Unduh PDF
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
 
               {items.length === 0 ? (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, LogOut, User as UserIcon, Settings as SettingsIcon, Shield, Bell, HelpCircle } from 'lucide-react';
+import { ArrowLeft, LogOut, User as UserIcon, Shield, Bell, HelpCircle, GraduationCap, School } from 'lucide-react';
 import { motion } from 'motion/react';
 import { User } from '@supabase/supabase-js';
 
@@ -8,9 +8,10 @@ interface SettingsProps {
   user: User | null;
   profile?: any;
   onLogout: () => void;
+  onNavigate: (page: string) => void;
 }
 
-export default function Settings({ onBack, user, profile, onLogout }: SettingsProps) {
+export default function Settings({ onBack, user, profile, onLogout, onNavigate }: SettingsProps) {
   return (
     <div className="min-h-screen bg-[#F5F2ED] text-[#1A1A1A] font-sans p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
@@ -63,22 +64,37 @@ export default function Settings({ onBack, user, profile, onLogout }: SettingsPr
 
           {/* Settings Options */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {(profile?.role === 'admin' || user?.user_metadata?.role === 'admin' || user?.email === 'nurimanpsk@gmail.com') && (
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="bg-white rounded-3xl shadow-lg p-6 border border-stone-100 flex items-center gap-4 hover:shadow-xl transition-shadow cursor-pointer group"
-              >
-                <div className="p-3 bg-stone-100 rounded-2xl text-stone-600 group-hover:bg-amber-100 group-hover:text-amber-600 transition-colors">
-                  <SettingsIcon size={24} />
-                </div>
-                <div>
-                  <h3 className="font-bold text-stone-800">Profil Sekolah</h3>
-                  <p className="text-xs text-stone-500">Ubah nama dan logo sekolah.</p>
-                </div>
-              </motion.div>
-            )}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              onClick={() => onNavigate('data-kelas')}
+              className="bg-white rounded-3xl shadow-lg p-6 border border-stone-100 flex items-center gap-4 hover:shadow-xl transition-shadow cursor-pointer group"
+            >
+              <div className="p-3 bg-stone-100 rounded-2xl text-stone-600 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">
+                <GraduationCap size={24} />
+              </div>
+              <div>
+                <h3 className="font-bold text-stone-800">Data Kelas</h3>
+                <p className="text-xs text-stone-500">Kelola Kelompok A & B (Guru & KS).</p>
+              </div>
+            </motion.div>
+
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              onClick={() => onNavigate('data-sekolah')}
+              className="bg-white rounded-3xl shadow-lg p-6 border border-stone-100 flex items-center gap-4 hover:shadow-xl transition-shadow cursor-pointer group"
+            >
+              <div className="p-3 bg-stone-100 rounded-2xl text-stone-600 group-hover:bg-amber-100 group-hover:text-amber-600 transition-colors">
+                <School size={24} />
+              </div>
+              <div>
+                <h3 className="font-bold text-stone-800">Data Sekolah</h3>
+                <p className="text-xs text-stone-500">Identitas umum, NPSN, & Alamat.</p>
+              </div>
+            </motion.div>
 
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
@@ -92,21 +108,6 @@ export default function Settings({ onBack, user, profile, onLogout }: SettingsPr
               <div>
                 <h3 className="font-bold text-stone-800">Keamanan</h3>
                 <p className="text-xs text-stone-500">Ganti kata sandi dan privasi.</p>
-              </div>
-            </motion.div>
-
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="bg-white rounded-3xl shadow-lg p-6 border border-stone-100 flex items-center gap-4 hover:shadow-xl transition-shadow cursor-pointer group"
-            >
-              <div className="p-3 bg-stone-100 rounded-2xl text-stone-600 group-hover:bg-purple-100 group-hover:text-purple-600 transition-colors">
-                <Bell size={24} />
-              </div>
-              <div>
-                <h3 className="font-bold text-stone-800">Notifikasi</h3>
-                <p className="text-xs text-stone-500">Atur pemberitahuan aplikasi.</p>
               </div>
             </motion.div>
 

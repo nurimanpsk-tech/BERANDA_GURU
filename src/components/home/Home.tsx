@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, BookOpen, CheckSquare, Palette, Image, ArrowRight, ClipboardCheck, ArrowLeft, GraduationCap, Users, Settings, Wallet, UserCheck, UserCog, UserCircle, Mail, Inbox, Send, Contact, Megaphone, Database, LogOut, User as UserIcon } from 'lucide-react';
+import { Sparkles, BookOpen, CheckSquare, Palette, Image, ArrowRight, ClipboardCheck, ArrowLeft, GraduationCap, Users, Settings, Wallet, UserCheck, UserCog, UserCircle, Mail, Inbox, Send, Contact, Megaphone, Database, LogOut, User as UserIcon, BookText } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { User } from '@supabase/supabase-js';
 
@@ -27,6 +27,7 @@ export default function Home({
   const [showAsesmenMenu, setShowAsesmenMenu] = useState(initialShowAsesmen);
   const [showAbsensiMenu, setShowAbsensiMenu] = useState(initialShowAbsensi);
   const [showSuratMenu, setShowSuratMenu] = useState(false);
+  const [showJurnalMenu, setShowJurnalMenu] = useState(false);
   const [showAdminMenu, setShowAdminMenu] = useState(initialShowAdmin && isAdmin);
 
   const adminItems = [
@@ -99,6 +100,14 @@ export default function Home({
       icon: <Image size={28} className="text-rose-600" />,
       color: 'bg-rose-50 hover:bg-rose-100 border-rose-200',
       textColor: 'text-rose-900',
+    },
+    {
+      id: 'asesmen-history',
+      title: 'Riwayat Asesmen',
+      description: 'Lihat dan kelola riwayat asesmen yang telah disimpan.',
+      icon: <Database size={28} className="text-stone-600" />,
+      color: 'bg-stone-50 hover:bg-stone-100 border-stone-200',
+      textColor: 'text-stone-900',
     }
   ];
 
@@ -126,6 +135,25 @@ export default function Home({
       icon: <UserCircle size={28} className="text-violet-600" />,
       color: 'bg-violet-50 hover:bg-violet-100 border-violet-200',
       textColor: 'text-violet-900',
+    }
+  ];
+
+  const jurnalItems = [
+    {
+      id: 'jurnal-guru',
+      title: 'Jurnal Guru',
+      description: 'Catatan harian kegiatan belajar mengajar guru.',
+      icon: <BookText size={28} className="text-emerald-600" />,
+      color: 'bg-emerald-50 hover:bg-emerald-100 border-emerald-200',
+      textColor: 'text-emerald-900',
+    },
+    {
+      id: 'jurnal-ks',
+      title: 'Jurnal Kepala Sekolah',
+      description: 'Catatan manajerial dan supervisi Kepala Sekolah.',
+      icon: <UserCircle size={28} className="text-blue-600" />,
+      color: 'bg-blue-50 hover:bg-blue-100 border-blue-200',
+      textColor: 'text-blue-900',
     }
   ];
 
@@ -197,6 +225,15 @@ export default function Home({
           action: () => onNavigate('absensi')
         },
         {
+          id: 'jurnal',
+          title: 'Jurnal Kegiatan',
+          description: 'Dokumentasi kegiatan harian Guru dan Kepala Sekolah.',
+          icon: <BookText size={32} className="text-emerald-600" />,
+          color: 'bg-emerald-50 hover:bg-emerald-100 border-emerald-200',
+          textColor: 'text-emerald-900',
+          action: () => setShowJurnalMenu(true)
+        },
+        {
           id: 'buku-induk',
           title: 'Buku Induk',
           description: 'Database lengkap profil siswa, riwayat masuk, dan keluar.',
@@ -246,7 +283,7 @@ export default function Home({
   return (
     <div className="min-h-screen bg-[#F5F2ED] text-[#1A1A1A] font-sans p-4 md:p-8 flex flex-col justify-center items-center">
       <div className="max-w-6xl w-full">
-        {!showAsesmenMenu && !showAbsensiMenu && !showSuratMenu && !showAdminMenu && (
+        {!showAsesmenMenu && !showAbsensiMenu && !showSuratMenu && !showJurnalMenu && !showAdminMenu && (
           <header className="mb-12 text-center relative">
             <motion.div
               initial={{ opacity: 0, y: -20 }}
@@ -268,7 +305,7 @@ export default function Home({
         )}
 
         <AnimatePresence mode="wait">
-          {!showAsesmenMenu && !showAbsensiMenu && !showSuratMenu && !showAdminMenu ? (
+          {!showAsesmenMenu && !showAbsensiMenu && !showSuratMenu && !showJurnalMenu && !showAdminMenu ? (
             <motion.div 
               key="main-menu"
               initial={{ opacity: 0, x: -20 }}
@@ -297,6 +334,56 @@ export default function Home({
                   </div>
                 </motion.button>
               ))}
+            </motion.div>
+          ) : showJurnalMenu ? (
+            <motion.div 
+              key="jurnal-menu"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="w-full max-w-4xl mx-auto"
+            >
+              <div className="relative mb-12 text-center">
+                <button 
+                  onClick={() => setShowJurnalMenu(false)}
+                  className="absolute left-0 top-0 p-2 rounded-full hover:bg-stone-200 transition-colors"
+                  title="Kembali"
+                >
+                  <ArrowLeft size={24} className="text-stone-600" />
+                </button>
+                <h2 className="text-3xl md:text-4xl font-serif mb-3">
+                  Jurnal <span className="text-emerald-600 italic">Kegiatan</span>
+                </h2>
+                <p className="text-stone-500 text-sm md:text-base max-w-lg mx-auto leading-relaxed">
+                  Dokumentasikan kegiatan harian Anda untuk pelaporan dan evaluasi yang lebih baik.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-4xl mx-auto">
+                {jurnalItems.map((item, index) => (
+                  <motion.button
+                    key={item.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    onClick={() => onNavigate(item.id)}
+                    className={`text-left p-6 md:p-7 rounded-[2rem] border transition-all duration-300 group relative overflow-hidden ${item.color} cursor-pointer shadow-sm hover:shadow-md`}
+                  >
+                    <div className="mb-5 bg-white w-12 h-12 rounded-xl flex items-center justify-center shadow-sm">
+                      {item.icon}
+                    </div>
+                    <h3 className={`text-xl font-bold mb-2 ${item.textColor}`}>
+                      {item.title}
+                    </h3>
+                    <p className="text-stone-600 text-xs md:text-sm leading-relaxed mb-6">
+                      {item.description}
+                    </p>
+                    <div className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest group-hover:translate-x-1 transition-transform ${item.textColor.replace('900', '600')}`}>
+                      BUKA JURNAL <ArrowRight size={14} />
+                    </div>
+                  </motion.button>
+                ))}
+              </div>
             </motion.div>
           ) : showAdminMenu ? (
             <motion.div 

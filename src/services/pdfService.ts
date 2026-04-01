@@ -2,6 +2,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 export interface PPMData {
+  id?: string;
   informasiUmum: {
     tema: string;
     subTema: string;

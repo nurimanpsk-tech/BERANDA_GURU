@@ -15,6 +15,7 @@ export default function PPMHistory({ onBack, onSelect, user }: PPMHistoryProps) 
   const [ppms, setPpms] = useState<{ id: string; data: PPMData }[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedGroup, setSelectedGroup] = useState<'Semua' | 'Kelompok A' | 'Kelompok B'>('Semua');
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -38,10 +39,17 @@ export default function PPMHistory({ onBack, onSelect, user }: PPMHistoryProps) 
     fetchPpms();
   }, [user]);
 
-  const filteredPpms = ppms.filter(item => 
-    item.data.informasiUmum.tema.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.data.informasiUmum.subTema.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPpms = ppms.filter(item => {
+    const matchesSearch = 
+      item.data.informasiUmum.tema.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.data.informasiUmum.subTema.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesGroup = 
+      selectedGroup === 'Semua' || 
+      item.data.informasiUmum.usia.includes(selectedGroup);
+    
+    return matchesSearch && matchesGroup;
+  });
 
   const handleDownload = (ppm: PPMData) => {
     generatePPMPDF(ppm);
@@ -129,15 +137,33 @@ export default function PPMHistory({ onBack, onSelect, user }: PPMHistoryProps) 
           </p>
         </header>
 
-        <div className="mb-8 relative max-w-md mx-auto">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400" size={20} />
-          <input
-            type="text"
-            placeholder="Cari tema atau sub-tema..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-white border border-stone-200 rounded-2xl pl-12 pr-4 py-3 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all shadow-sm"
-          />
+        <div className="max-w-md mx-auto space-y-4 mb-8">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400" size={20} />
+            <input
+              type="text"
+              placeholder="Cari tema atau sub-tema..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-white border border-stone-200 rounded-2xl pl-12 pr-4 py-3 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all shadow-sm"
+            />
+          </div>
+          
+          <div className="flex justify-center gap-2">
+            {(['Semua', 'Kelompok A', 'Kelompok B'] as const).map((group) => (
+              <button
+                key={group}
+                onClick={() => setSelectedGroup(group)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border ${
+                  selectedGroup === group
+                    ? 'bg-amber-600 text-white border-amber-600 shadow-lg shadow-amber-600/20'
+                    : 'bg-white text-stone-500 border-stone-200 hover:border-amber-200'
+                }`}
+              >
+                {group}
+              </button>
+            ))}
+          </div>
         </div>
 
         {loading ? (
