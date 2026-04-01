@@ -1,7 +1,8 @@
-import React from 'react';
-import { ArrowLeft, LogOut, User as UserIcon, Shield, Bell, HelpCircle, GraduationCap, School } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, LogOut, User as UserIcon, Shield, Bell, HelpCircle, GraduationCap, School, Construction, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { User } from '@supabase/supabase-js';
+import { appSettingsService } from '../../services/appSettingsService';
 
 interface SettingsProps {
   onBack: () => void;
@@ -9,9 +10,39 @@ interface SettingsProps {
   profile?: any;
   onLogout: () => void;
   onNavigate: (page: string) => void;
+  isAdmin?: boolean;
+  maintenanceMode?: boolean;
+  onMaintenanceToggle?: (enabled: boolean) => void;
 }
 
-export default function Settings({ onBack, user, profile, onLogout, onNavigate }: SettingsProps) {
+export default function Settings({ 
+  onBack, 
+  user, 
+  profile, 
+  onLogout, 
+  onNavigate,
+  isAdmin,
+  maintenanceMode: initialMaintenanceMode,
+  onMaintenanceToggle
+}: SettingsProps) {
+  const [isUpdatingMaintenance, setIsUpdatingMaintenance] = useState(false);
+
+  const toggleMaintenance = async () => {
+    if (!onMaintenanceToggle) return;
+    
+    setIsUpdatingMaintenance(true);
+    try {
+      const newValue = !initialMaintenanceMode;
+      await appSettingsService.setMaintenanceMode(newValue);
+      onMaintenanceToggle(newValue);
+    } catch (err) {
+      console.error('Failed to toggle maintenance mode:', err);
+      alert('Gagal mengubah mode pemeliharaan. Pastikan tabel app_settings sudah tersedia di database.');
+    } finally {
+      setIsUpdatingMaintenance(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F5F2ED] text-[#1A1A1A] font-sans p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
@@ -45,7 +76,7 @@ export default function Settings({ onBack, user, profile, onLogout, onNavigate }
                   <div className="inline-flex items-center px-3 py-1 rounded-full bg-stone-100 text-stone-600 text-xs font-bold uppercase tracking-widest">
                     Akun Terverifikasi
                   </div>
-                  {(profile?.role === 'admin' || user?.user_metadata?.role === 'admin' || user?.email === 'nurimanpsk@gmail.com') && (
+                  {isAdmin && (
                     <div className="inline-flex items-center px-3 py-1 rounded-full bg-amber-100 text-amber-600 text-xs font-bold uppercase tracking-widest">
                       Administrator
                     </div>
@@ -61,6 +92,43 @@ export default function Settings({ onBack, user, profile, onLogout, onNavigate }
               </button>
             </div>
           </motion.div>
+
+          {/* Admin Tools Section */}
+          {isAdmin && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
+              className="bg-amber-50 rounded-3xl p-8 border border-amber-100"
+            >
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-amber-100 rounded-2xl text-amber-600">
+                    <Construction size={24} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-stone-800">Mode Pemeliharaan</h3>
+                    <p className="text-xs text-stone-500">Aktifkan untuk membatasi akses pengguna umum saat pengembangan.</p>
+                  </div>
+                </div>
+                <button
+                  onClick={toggleMaintenance}
+                  disabled={isUpdatingMaintenance}
+                  className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none ${
+                    initialMaintenanceMode ? 'bg-amber-600' : 'bg-stone-300'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                      initialMaintenanceMode ? 'translate-x-7' : 'translate-x-1'
+                    } flex items-center justify-center`}
+                  >
+                    {isUpdatingMaintenance && <Loader2 size={12} className="animate-spin text-amber-600" />}
+                  </span>
+                </button>
+              </div>
+            </motion.div>
+          )}
 
           {/* Settings Options */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

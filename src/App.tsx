@@ -21,8 +21,10 @@ import AbsensiSiswa from './components/absensi/AbsensiSiswa';
 import AbsensiGuru from './components/absensi/AbsensiGuru';
 import Auth from './components/auth/Auth';
 import Settings from './components/settings/Settings';
+import MaintenanceMode from './components/MaintenanceMode';
 import { PPMData } from './services/pdfService';
 import { ppmService } from './services/ppmService';
+import { appSettingsService } from './services/appSettingsService';
 import { getSupabase } from './services/supabaseClient';
 import { User } from '@supabase/supabase-js';
 
@@ -35,11 +37,26 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [checkingMaintenance, setCheckingMaintenance] = useState(true);
 
   const supabase = getSupabase();
 
   // Handle browser/hardware back button and Auth
   useEffect(() => {
+    // Check Maintenance Mode
+    const checkMaintenance = async () => {
+      try {
+        const isMaintenance = await appSettingsService.getMaintenanceMode();
+        setMaintenanceMode(isMaintenance);
+      } catch (err) {
+        console.error('Failed to check maintenance mode:', err);
+      } finally {
+        setCheckingMaintenance(false);
+      }
+    };
+    checkMaintenance();
+
     // Auth Check
     if (supabase) {
       supabase.auth.getSession().then(({ data: { session } }) => {
@@ -159,6 +176,10 @@ export default function App() {
 
   const isAdmin = user?.user_metadata?.role === 'admin' || profile?.role === 'admin' || user?.email === 'nurimanpsk@gmail.com';
 
+  const handleMaintenanceToggle = (enabled: boolean) => {
+    setMaintenanceMode(enabled);
+  };
+
   const navigateBackToAdmin = () => {
     setCurrentPage('home');
     setReturnToAsesmen(false);
@@ -178,7 +199,7 @@ export default function App() {
     }
   };
 
-  if (authLoading || (user && !profile)) {
+  if (authLoading || checkingMaintenance || (user && !profile)) {
     return (
       <div className="min-h-screen bg-[#F5F2ED] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -187,6 +208,11 @@ export default function App() {
         </div>
       </div>
     );
+  }
+
+  // Show maintenance mode if enabled and user is NOT an admin
+  if (maintenanceMode && !isAdmin) {
+    return <MaintenanceMode />;
   }
 
   if (!supabase) {
@@ -398,6 +424,9 @@ export default function App() {
           profile={profile}
           onLogout={handleLogout}
           onNavigate={navigateTo}
+          isAdmin={isAdmin}
+          maintenanceMode={maintenanceMode}
+          onMaintenanceToggle={handleMaintenanceToggle}
         />
       )}
       {currentPage === 'uang-kas' && (
