@@ -55,7 +55,7 @@ export default function MaintenanceMode() {
         </h1>
         
         <p className="text-stone-500 text-lg mb-12 leading-relaxed max-w-lg mx-auto">
-          Mohon maaf atas ketidak nyamanannya. Saat ini kami sedang melakukan pembaruan sistem untuk memberikan pengalaman yang lebih baik bagi Anda.
+          Mohon maaf atas ketidaknyamanannya. Saat ini kami sedang melakukan pembaruan sistem untuk memberikan pengalaman yang lebih baik bagi Anda.
         </p>
 
         {/* Status Cards */}
