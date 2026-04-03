@@ -156,19 +156,23 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
       if (user) {
         const { data: curriculumData, error: curriculumError } = await supabase
           .from('curriculum_entries')
-          .select('elemen, sub_elemen, tp, indikator');
+          .select('*')
+          .eq('user_id', user.id);
         
         if (!curriculumError && curriculumData && curriculumData.length > 0) {
           curriculumContext = curriculumData.map((e: any) => 
-            `[${e.elemen}] ${e.sub_elemen}: ${e.tp} (Indikator: ${e.indikator})`
+            `Elemen: ${e.elemen}, Sub-Elemen: ${e.sub_elemen}, TP: ${e.tp}, ATP: ${e.atp}, Indikator: ${e.indikator}`
           ).join('\n');
         }
       }
 
       const combinedMingguSemester = `Minggu ke-${schoolInfo.minggu} / Semester ${schoolInfo.semester}`;
+      const [tema, ...subTemaParts] = prompt.split(',').map(s => s.trim());
+      const subTema = subTemaParts.join(', ');
+      const structuredPrompt = subTema ? `Tema: ${tema}, Sub-Tema: ${subTema}` : `Tema: ${tema}`;
+      
       setGenerationStatus('Menyusun rencana pembelajaran mendalam...');
-      const [tema, subTema] = prompt.split(',').map(s => s.trim());
-      const data = await generatePPM(prompt, curriculumContext, schoolInfo.hariTanggal, tema, subTema);
+      const data = await generatePPM(structuredPrompt, curriculumContext, schoolInfo.hariTanggal);
       
       setGenerationStatus('Memfinalisasi data...');
       const fullData = {
@@ -190,9 +194,9 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
       setGenerationStatus('Menyimpan ke Cloud...');
       await handleSaveToSupabase(fullData);
       setGenerationStatus('');
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setError(`Gagal menghasilkan PPM: ${err.message || 'Silakan coba lagi.'}`);
+      setError('Gagal menghasilkan PPM. Silakan coba lagi.');
       setGenerationStatus('');
     } finally {
       setLoading(false);

@@ -4,15 +4,23 @@ export async function generatePPM(prompt: string, curriculumContext?: string, ha
   const model = "gpt-4o";
   const endpoint = "https://models.inference.ai.azure.com/chat/completions";
 
-  const systemInstruction = `Anda adalah asisten kurikulum yang PATUH.
-
-  1. SUMBER DATA WAJIB: Anda HANYA boleh menggunakan TP dan Indikator dari 'DATA KURIKULUM' yang diberikan.
-  2. LARANGAN KERAS: DILARANG MENGARANG TP sendiri. Jika TP di database tidak ada yang cocok dengan tema, pilih TP yang paling mendekati, JANGAN membuat TP baru.
-  3. KONTROL: Jika Anda melanggar aturan ini, PPM yang Anda buat dianggap gagal.
-  4. FORMAT BERSIH: Untuk setiap item dalam daftar (array), pastikan teksnya bersih, tidak mengandung kode tambahan (seperti kode referensi dalam kurung) yang tidak perlu, dan diformat dengan rapi agar konsisten saat diunduh menjadi PDF.
+  const systemInstruction = `Anda adalah pakar kurikulum PAUD/TK di Indonesia yang sangat PATUH pada data.
+  Tugas Anda adalah membuat Perencanaan Pembelajaran Mendalam (PPM) yang LENGKAP (FULL), kreatif, mendalam, dan sesuai standar Kurikulum Merdeka.
   
-  ${curriculumContext ? `REFERENSI KURIKULUM RESMI SEKOLAH:
-  ${curriculumContext}` : ''}
+  URUTAN KERJA WAJIB:
+  1. Identifikasi Tema dan Sub-Tema dari input pengguna.
+  2. Cari dan pilih Tujuan Pembelajaran (TP) serta Indikator yang paling RELEVAN dari 'DATA KURIKULUM' di bawah ini.
+  3. Susun seluruh rencana kegiatan (Kegiatan Inti, Asesmen, dll) secara LENGKAP agar SINKRON dengan TP yang Anda pilih dan Tema/Sub-Tema tersebut.
+
+  SUMBER DATA WAJIB:
+  - Anda HANYA boleh menggunakan TP dan Indikator dari 'DATA KURIKULUM' yang diberikan.
+  - LARANGAN KERAS: DILARANG MENGARANG atau membuat TP sendiri.
+  - Jika tidak ada TP yang 100% cocok, pilih TP yang paling mendekati dari daftar yang ada. JANGAN membuat TP baru.
+  - Jika Anda mengarang TP di luar database, maka tugas Anda dianggap GAGAL.
+  - ATURAN PEMILIHAN TP: Pastikan Anda memilih TP yang mewakili elemen-elemen berikut: NAB (Nilai Agama dan Budi Pekerti), JD (Jati Diri), DLS (Dasar Literasi dan STEAM), dan BJW. Ambil masing-masing 1 atau 2 TP dari setiap elemen tersebut, sehingga total TP yang dipilih berjumlah antara 4 hingga 8 TP.
+
+  ${curriculumContext ? `DATA KURIKULUM (REFERENSI UTAMA):
+  ${curriculumContext}` : 'Peringatan: Data kurikulum tidak tersedia. Gunakan standar Kurikulum Merdeka PAUD umum.'}
 
   PENTING:
   - Gunakan Bahasa Indonesia yang hangat dan edukatif.
