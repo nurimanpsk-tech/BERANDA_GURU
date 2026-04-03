@@ -46,6 +46,32 @@ export interface PPMData {
     merefleksi: string[];
     penutup: string;
   };
+  // New fields for the structured table format
+  penyambutan?: {
+    senin: string;
+    selasa: string;
+    rabu: string;
+    kamis: string;
+    jumat: string;
+  };
+  pembukaan?: string[];
+  memahami?: string[];
+  kegiatanHarian?: {
+    senin: string;
+    selasa: string;
+    rabu: string;
+    kamis: string;
+    jumat: string;
+  };
+  kegiatanInti?: {
+    senin: string[];
+    selasa: string[];
+    rabu: string[];
+    kamis: string[];
+    jumat: string[];
+  };
+  mengaplikasi?: string[];
+  merefleksi?: string[];
   asesmenPembelajaran: string;
   schoolName?: string;
   academicYear?: string;

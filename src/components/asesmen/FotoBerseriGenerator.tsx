@@ -257,12 +257,12 @@ Format output: Langsung berikan 3 poin deskripsi menggunakan simbol bullet (•)
       
       // Header
       doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
+      doc.setFont('times', 'bold');
       doc.text('ASESMEN FOTO BERSERI', pageWidth / 2, 15, { align: 'center' });
       doc.text(ppmData.schoolName || 'TK BALEGONDO 1', pageWidth / 2, 22, { align: 'center' });
       
       doc.setFontSize(10.5);
-      doc.setFont('helvetica', 'normal');
+      doc.setFont('times', 'normal');
       
       const startY = 40;
       const lineHeight = 6;
@@ -308,11 +308,18 @@ Format output: Langsung berikan 3 poin deskripsi menggunakan simbol bullet (•)
         theme: 'grid',
         rowPageBreak: 'auto',
         styles: {
+          font: 'times',
           fontSize: 10.5,
           cellPadding: 2.5,
           lineColor: [0, 0, 0],
           lineWidth: 0.1,
           fillColor: [255, 255, 255], // Ensure white background for all cells
+        },
+        headStyles: {
+          font: 'times',
+        },
+        bodyStyles: {
+          font: 'times',
         },
         didDrawCell: (dataHook) => {
           if (dataHook.section === 'body' && dataHook.column.index === 0) {
@@ -360,12 +367,12 @@ Format output: Langsung berikan 3 poin deskripsi menggunakan simbol bullet (•)
       doc.setFontSize(10);
       doc.text('Mengetahui,', pageWidth * 0.25, finalY, { align: 'center' });
       doc.text('Kepala Sekolah', pageWidth * 0.25, finalY + 5, { align: 'center' });
-      doc.setFont('helvetica', 'bold');
+      doc.setFont('times', 'bold');
       doc.text(ppmData.principalName || '', pageWidth * 0.25, finalY + 30, { align: 'center' });
       
-      doc.setFont('helvetica', 'normal');
+      doc.setFont('times', 'normal');
       doc.text(`Guru Kelas ${selectedGroup.split(' ')[1]}`, pageWidth * 0.75, finalY + 5, { align: 'center' });
-      doc.setFont('helvetica', 'bold');
+      doc.setFont('times', 'bold');
       doc.text(ppmData.teacherName || '', pageWidth * 0.75, finalY + 30, { align: 'center' });
 
       doc.save('Asesmen_Foto_Berseri.pdf');

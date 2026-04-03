@@ -156,19 +156,19 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
       if (user) {
         const { data: curriculumData, error: curriculumError } = await supabase
           .from('curriculum_entries')
-          .select('*')
-          .eq('user_id', user.id);
+          .select('elemen, sub_elemen, tp, indikator');
         
         if (!curriculumError && curriculumData && curriculumData.length > 0) {
           curriculumContext = curriculumData.map((e: any) => 
-            `Elemen: ${e.elemen}, Sub-Elemen: ${e.sub_elemen}, TP: ${e.tp}, ATP: ${e.atp}, Indikator: ${e.indikator}`
+            `[${e.elemen}] ${e.sub_elemen}: ${e.tp} (Indikator: ${e.indikator})`
           ).join('\n');
         }
       }
 
       const combinedMingguSemester = `Minggu ke-${schoolInfo.minggu} / Semester ${schoolInfo.semester}`;
       setGenerationStatus('Menyusun rencana pembelajaran mendalam...');
-      const data = await generatePPM(prompt, curriculumContext, schoolInfo.hariTanggal);
+      const [tema, subTema] = prompt.split(',').map(s => s.trim());
+      const data = await generatePPM(prompt, curriculumContext, schoolInfo.hariTanggal, tema, subTema);
       
       setGenerationStatus('Memfinalisasi data...');
       const fullData = {
@@ -190,9 +190,9 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
       setGenerationStatus('Menyimpan ke Cloud...');
       await handleSaveToSupabase(fullData);
       setGenerationStatus('');
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError('Gagal menghasilkan PPM. Silakan coba lagi.');
+      setError(`Gagal menghasilkan PPM: ${err.message || 'Silakan coba lagi.'}`);
       setGenerationStatus('');
     } finally {
       setLoading(false);

@@ -218,11 +218,11 @@ export default function HasilKaryaGenerator({ onBack, ppmData: initialPpmData, u
     
     // Header
     doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('times', 'bold');
     doc.text('ASESMEN HASIL KARYA', 105, 15, { align: 'center' });
     
     doc.setFontSize(10.5);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('times', 'normal');
     
     const startY = 30;
     const lineHeight = 6;
@@ -270,6 +270,7 @@ export default function HasilKaryaGenerator({ onBack, ppmData: initialPpmData, u
       body: tableBody,
       theme: 'grid',
       styles: {
+        font: 'times',
         fontSize: 10.5,
         cellPadding: 1.5,
         valign: 'middle' as const,
@@ -279,6 +280,7 @@ export default function HasilKaryaGenerator({ onBack, ppmData: initialPpmData, u
         minCellHeight: 50.5
       },
       headStyles: {
+        font: 'times',
         fillColor: [255, 255, 255],
         textColor: [0, 0, 0],
         fontStyle: 'bold',
@@ -287,6 +289,9 @@ export default function HasilKaryaGenerator({ onBack, ppmData: initialPpmData, u
         lineWidth: 0.1,
         lineColor: [0, 0, 0],
         minCellHeight: 10 // Compact header
+      },
+      bodyStyles: {
+        font: 'times',
       },
       columnStyles: {
         0: { cellWidth: 15, halign: 'center' as const }, // No
@@ -346,12 +351,12 @@ export default function HasilKaryaGenerator({ onBack, ppmData: initialPpmData, u
     doc.setFontSize(10);
     doc.text('Mengetahui', 50, finalY, { align: 'center' });
     doc.text('Kepala Sekolah', 50, finalY + 5, { align: 'center' });
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('times', 'bold');
     doc.text(ppmData.principalName || 'KUNLISTYANI, S.Pd', 50, finalY + 30, { align: 'center' });
 
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('times', 'normal');
     doc.text(`Guru Kelas ${selectedGroup.split(' ')[1]}`, 160, finalY + 5, { align: 'center' });
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('times', 'bold');
     doc.text(ppmData.teacherName || 'NABILA ANIN SAU\'DAH', 160, finalY + 30, { align: 'center' });
 
     doc.save(`Asesmen_Hasil_Karya_${ppmData.schoolName || 'TK'}.pdf`);

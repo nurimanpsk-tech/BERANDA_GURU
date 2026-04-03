@@ -306,7 +306,7 @@ export default function App() {
         />
       )}
       {currentPage === 'curriculum' && (
-        <CurriculumManager onBack={navigateBackToAdmin} user={user} />
+        <CurriculumManager onBack={() => navigateTo('home')} user={user} profile={profile} />
       )}
       {currentPage === 'users' && (
         <UserManager onBack={navigateBackToAdmin} currentUser={user} />

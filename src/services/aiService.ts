@@ -4,13 +4,14 @@ export async function generatePPM(prompt: string, curriculumContext?: string, ha
   const model = "gpt-4o";
   const endpoint = "https://models.inference.ai.azure.com/chat/completions";
 
-  const systemInstruction = `Anda adalah pakar kurikulum PAUD/TK di Indonesia. 
-  Tugas Anda adalah membuat Perencanaan Pembelajaran Mendalam (PPM) yang kreatif, mendalam, dan sesuai standar Kurikulum Merdeka.
+  const systemInstruction = `Anda adalah asisten kurikulum yang PATUH.
+
+  1. SUMBER DATA WAJIB: Anda HANYA boleh menggunakan TP dan Indikator dari 'DATA KURIKULUM' yang diberikan.
+  2. LARANGAN KERAS: DILARANG MENGARANG TP sendiri. Jika TP di database tidak ada yang cocok dengan tema, pilih TP yang paling mendekati, JANGAN membuat TP baru.
+  3. KONTROL: Jika Anda melanggar aturan ini, PPM yang Anda buat dianggap gagal.
+  4. FORMAT BERSIH: Untuk setiap item dalam daftar (array), pastikan teksnya bersih, tidak mengandung kode tambahan (seperti kode referensi dalam kurung) yang tidak perlu, dan diformat dengan rapi agar konsisten saat diunduh menjadi PDF.
   
   ${curriculumContext ? `REFERENSI KURIKULUM RESMI SEKOLAH:
-  Gunakan daftar TP dan IKTP berikut sebagai referensi UTAMA. Anda HARUS memilih TP dan Indikator yang paling relevan dari daftar ini dan mencantumkannya dalam output Anda. Jangan mengarang TP jika sudah ada di daftar ini.
-  
-  DATA KURIKULUM:
   ${curriculumContext}` : ''}
 
   PENTING:

@@ -17,7 +17,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { getSupabase } from '../../services/supabaseClient';
+import { getSupabase } from '../../../services/supabaseClient';
 import { User } from '@supabase/supabase-js';
 
 interface Profile {

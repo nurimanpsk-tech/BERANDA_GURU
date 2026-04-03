@@ -24,7 +24,7 @@ import {
   Area 
 } from 'recharts';
 import { motion } from 'motion/react';
-import { monitorService, GitHubRateLimit, SupabaseUsage } from '../../services/monitorService';
+import { monitorService, GitHubRateLimit, SupabaseUsage } from '../../../services/monitorService';
 
 interface SystemMonitorProps {
   onBack: () => void;

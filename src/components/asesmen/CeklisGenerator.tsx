@@ -257,11 +257,11 @@ export default function CeklisGenerator({ onBack, ppmData: initialPpmData, user 
     
     // Header
     doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('times', 'bold');
     doc.text('ASESMEN CEKLIS', 105, 15, { align: 'center' });
     
     doc.setFontSize(10.5);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('times', 'normal');
     
     const startY = 30;
     const lineHeight = 6;
@@ -335,6 +335,7 @@ export default function CeklisGenerator({ onBack, ppmData: initialPpmData, user 
       body: tableBody,
       theme: 'grid',
       styles: {
+        font: 'times',
         fontSize: 10.5,
         cellPadding: 1.5,
         valign: 'middle',
@@ -344,6 +345,7 @@ export default function CeklisGenerator({ onBack, ppmData: initialPpmData, user 
         overflow: 'linebreak'
       },
       headStyles: {
+        font: 'times',
         fillColor: [255, 255, 255],
         textColor: [0, 0, 0],
         fontStyle: 'bold',
@@ -352,6 +354,9 @@ export default function CeklisGenerator({ onBack, ppmData: initialPpmData, user 
         lineWidth: 0.1,
         lineColor: [0, 0, 0],
         fontSize: 10.5
+      },
+      bodyStyles: {
+        font: 'times',
       },
       columnStyles: columnStyles
     });
@@ -369,12 +374,12 @@ export default function CeklisGenerator({ onBack, ppmData: initialPpmData, user 
     // Center is 105
     doc.text('Mengetahui', 50, finalY, { align: 'center' });
     doc.text('Kepala Sekolah', 50, finalY + 5, { align: 'center' });
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('times', 'bold');
     doc.text(ppmData.principalName || 'KUNLISTYANI, S.Pd', 50, finalY + 30, { align: 'center' });
 
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('times', 'normal');
     doc.text(`Guru Kelas ${selectedGroup.split(' ')[1]}`, 160, finalY + 5, { align: 'center' });
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('times', 'bold');
     doc.text(ppmData.teacherName || 'NABILA ANIN SAU\'DAH', 160, finalY + 30, { align: 'center' });
 
     doc.save('Asesmen_Ceklis.pdf');

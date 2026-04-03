@@ -165,11 +165,11 @@ export default function AnekdotGenerator({ onBack, ppmData: initialPpmData, user
     
     // Header
     doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('times', 'bold');
     doc.text('ASESMEN ANEKDOT', 105, 15, { align: 'center' });
     
     doc.setFontSize(10.5);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('times', 'normal');
     
     const startY = 30;
     const lineHeight = 6;
@@ -209,6 +209,7 @@ export default function AnekdotGenerator({ onBack, ppmData: initialPpmData, user
       body: tableBody,
       theme: 'grid',
       styles: {
+        font: 'times',
         fontSize: 10.5,
         cellPadding: 1.5,
         valign: 'middle',
@@ -217,6 +218,7 @@ export default function AnekdotGenerator({ onBack, ppmData: initialPpmData, user
         textColor: [0, 0, 0]
       },
       headStyles: {
+        font: 'times',
         fillColor: [255, 255, 255],
         textColor: [0, 0, 0],
         fontStyle: 'bold',
@@ -225,6 +227,9 @@ export default function AnekdotGenerator({ onBack, ppmData: initialPpmData, user
         lineWidth: 0.1,
         lineColor: [0, 0, 0],
         minCellHeight: 8
+      },
+      bodyStyles: {
+        font: 'times',
       },
       columnStyles: {
         0: { cellWidth: 15, halign: 'center' },
@@ -246,12 +251,12 @@ export default function AnekdotGenerator({ onBack, ppmData: initialPpmData, user
 
     doc.text('Mengetahui', 50, finalY, { align: 'center' });
     doc.text('Kepala Sekolah', 50, finalY + 5, { align: 'center' });
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('times', 'bold');
     doc.text(ppmData.principalName || '', 50, finalY + 30, { align: 'center' });
 
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('times', 'normal');
     doc.text(`Guru Kelas ${selectedGroup.split(' ')[1]}`, 160, finalY + 5, { align: 'center' });
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('times', 'bold');
     doc.text(ppmData.teacherName || '', 160, finalY + 30, { align: 'center' });
 
     doc.save('Asesmen_Anekdot.pdf');

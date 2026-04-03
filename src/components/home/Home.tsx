@@ -169,7 +169,7 @@ export default function Home({
     ? [
         {
           id: 'curriculum',
-          title: 'Kelola Capaian Pembelajaran',
+          title: 'Database CP',
           description: 'Input daftar TP dan IKTP dari Pengawas untuk referensi AI.',
           icon: <Database size={32} className="text-purple-600" />,
           color: 'bg-purple-50 hover:bg-purple-100 border-purple-200',
@@ -285,6 +285,15 @@ export default function Home({
           color: 'bg-rose-50 hover:bg-rose-100 border-rose-200',
           textColor: 'text-rose-900',
           action: () => onNavigate('uang-kas')
+        },
+        {
+          id: 'curriculum',
+          title: 'Database CP',
+          description: 'Lihat dan pelajari kurikulum sekolah.',
+          icon: <BookText size={32} className="text-purple-600" />,
+          color: 'bg-purple-50 hover:bg-purple-100 border-purple-200',
+          textColor: 'text-purple-900',
+          action: () => onNavigate('curriculum')
         },
         {
           id: 'pengaturan',
