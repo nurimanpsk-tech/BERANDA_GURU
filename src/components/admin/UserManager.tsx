@@ -12,7 +12,9 @@ import {
   UserCheck,
   ArrowLeft,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  Trash2,
+  AlertTriangle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { getSupabase } from '../../services/supabaseClient';
@@ -43,6 +45,8 @@ export default function UserManager({ onBack, currentUser }: UserManagerProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState<string>('all');
   const [refreshing, setRefreshing] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const supabase = getSupabase();
 
@@ -90,6 +94,37 @@ export default function UserManager({ onBack, currentUser }: UserManagerProps) {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!supabase) return;
+    setDeleting(true);
+    try {
+      // Menggunakan RPC untuk menghapus dari auth.users (Authentication)
+      // Fungsi ini harus dibuat di SQL Editor Supabase terlebih dahulu
+      const { error } = await supabase.rpc('delete_user_completely', { 
+        user_id: userId 
+      });
+
+      if (error) {
+        // Jika RPC gagal (mungkin fungsi belum dibuat), coba hapus profile saja sebagai fallback
+        console.warn('RPC delete_user_completely failed, falling back to profile delete:', error);
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .delete()
+          .eq('id', userId);
+        
+        if (profileError) throw profileError;
+      }
+      
+      setProfiles(profiles.filter(p => p.id !== userId));
+      setShowDeleteModal(null);
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      alert('Gagal menghapus pengguna. Pastikan Anda sudah menjalankan SQL Function di Supabase SQL Editor.');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -211,9 +246,18 @@ export default function UserManager({ onBack, currentUser }: UserManagerProps) {
                         </span>
                       </td>
                       <td className="px-8 py-5 text-right">
-                        <button className="p-2 rounded-xl hover:bg-white hover:shadow-sm text-stone-400 hover:text-amber-600 transition-all">
-                          <MoreVertical size={18} />
-                        </button>
+                        <div className="flex justify-end gap-2">
+                          <button 
+                            onClick={() => setShowDeleteModal(p.id)}
+                            className="p-2 rounded-xl hover:bg-red-50 text-stone-400 hover:text-red-600 transition-all"
+                            title="Hapus Pengguna"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                          <button className="p-2 rounded-xl hover:bg-stone-100 text-stone-400 hover:text-amber-600 transition-all">
+                            <MoreVertical size={18} />
+                          </button>
+                        </div>
                       </td>
                     </motion.tr>
                   ))}
@@ -226,6 +270,60 @@ export default function UserManager({ onBack, currentUser }: UserManagerProps) {
         <footer className="mt-12 text-center text-stone-400 text-xs font-medium uppercase tracking-widest">
           Total {filteredProfiles.length} Pengguna Terdaftar
         </footer>
+
+        {/* Delete Confirmation Modal */}
+        <AnimatePresence>
+          {showDeleteModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => !deleting && setShowDeleteModal(null)}
+                className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm"
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="relative bg-white rounded-[2.5rem] shadow-2xl border border-stone-100 p-8 max-w-md w-full"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center text-red-600 mb-6">
+                    <AlertTriangle size={32} />
+                  </div>
+                  <h3 className="text-2xl font-serif font-bold text-stone-800 mb-2">Hapus Pengguna?</h3>
+                  <p className="text-stone-500 mb-8 leading-relaxed">
+                    Tindakan ini tidak dapat dibatalkan. Data profil pengguna akan dihapus secara permanen dari sistem.
+                  </p>
+                  <div className="flex gap-3 w-full">
+                    <button
+                      disabled={deleting}
+                      onClick={() => setShowDeleteModal(null)}
+                      className="flex-1 px-6 py-3 bg-stone-100 text-stone-600 rounded-2xl font-bold hover:bg-stone-200 transition-all disabled:opacity-50"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      disabled={deleting}
+                      onClick={() => handleDeleteUser(showDeleteModal)}
+                      className="flex-1 px-6 py-3 bg-red-600 text-white rounded-2xl font-bold hover:bg-red-700 shadow-lg shadow-red-200 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {deleting ? (
+                        <>
+                          <Loader2 size={18} className="animate-spin" />
+                          Menghapus...
+                        </>
+                      ) : (
+                        'Ya, Hapus'
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
