@@ -18,15 +18,17 @@ export async function generatePPM(prompt: string, curriculumContext?: string, ha
   - Jika tidak ada TP yang 100% cocok, pilih TP yang paling mendekati dari daftar yang ada. JANGAN membuat TP baru.
   - Jika Anda mengarang TP di luar database, maka tugas Anda dianggap GAGAL.
   - ATURAN PEMILIHAN TP: Pastikan Anda memilih TP yang mewakili elemen-elemen berikut: NAB (Nilai Agama dan Budi Pekerti), JD (Jati Diri), DLS (Dasar Literasi dan STEAM), dan BJW. Ambil masing-masing 1 atau 2 TP dari setiap elemen tersebut, sehingga total TP yang dipilih berjumlah antara 4 hingga 8 TP.
+  - JIKA DATA KURIKULUM KOSONG: Anda WAJIB mengisi array 'tujuanPembelajaran' HANYA dengan satu kalimat ini: "ERROR: Data Kurikulum (Database CP) kosong. Silakan isi Database CP terlebih dahulu."
 
   ${curriculumContext ? `DATA KURIKULUM (REFERENSI UTAMA):
-  ${curriculumContext}` : 'Peringatan: Data kurikulum tidak tersedia. Gunakan standar Kurikulum Merdeka PAUD umum.'}
+  ${curriculumContext}` : 'DATA KURIKULUM KOSONG.'}
 
   PENTING:
   - Gunakan Bahasa Indonesia yang hangat dan edukatif.
   - Gunakan nama hari dalam Bahasa Indonesia (Senin, Selasa, Rabu, Kamis, Jumat).
   - Pada 'jadwalHarian', kolom 'kegiatanPenyambutan' diisi dengan narasi singkat (contoh: "Menyambut anak dengan sapaan hangat dan senyum"), BUKAN jam/waktu.
-  - Setiap bagian yang berupa daftar (array) seperti Tujuan Pembelajaran, Praktik Pedagogis, Kemitraan, Pemanfaatan Digital, Pembukaan, Memahami, Mengaplikasi, Merefleksi, dll, HARUS berisi tepat 3 poin/item (jangan kurang, jangan lebih).
+  - Setiap bagian yang berupa daftar (array) seperti Praktik Pedagogis, Kemitraan, Pemanfaatan Digital, Pembukaan, Memahami, Mengaplikasi, Merefleksi, dll, HARUS berisi tepat 3 poin/item (jangan kurang, jangan lebih). KECUALI Tujuan Pembelajaran yang harus mengikuti aturan 4-8 TP di atas.
+  - TULISKAN TP PERSIS SEPERTI TEKS ASLINYA (Copy-Paste dari DATA KURIKULUM). Jangan diubah bahasanya.
   - Pada bagian 'pengalamanBelajar' -> 'jadwalHarian' dan 'kegiatanInti', Anda HARUS membuat entri untuk SETIAP hari kerja yang disebutkan dalam 'informasiUmum' -> 'hariTanggal'. 
   - Jika 'hariTanggal' menyebutkan 'Senin - Jumat', maka Anda WAJIB membuat 5 entri (Senin, Selasa, Rabu, Kamis, Jumat). 
   - Jika 'hariTanggal' menyebutkan 'Senin - Kamis', maka Anda WAJIB membuat 4 entri (Senin, Selasa, Rabu, Kamis).
@@ -131,7 +133,19 @@ export async function generatePPM(prompt: string, curriculumContext?: string, ha
         throw new Error("GitHub Models tidak memberikan respon.");
       }
 
-      return JSON.parse(content);
+      let cleanContent = content.trim();
+      if (cleanContent.startsWith('```json')) {
+        cleanContent = cleanContent.replace(/^```json\n?/, '').replace(/\n?```$/, '');
+      } else if (cleanContent.startsWith('```')) {
+        cleanContent = cleanContent.replace(/^```\n?/, '').replace(/\n?```$/, '');
+      }
+
+      try {
+        return JSON.parse(cleanContent);
+      } catch (parseError) {
+        console.error("Failed to parse JSON. Raw content:", cleanContent);
+        throw new Error(`JSON Parse Error: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
+      }
     } catch (error) {
       console.error(`Error dengan token: ${token.substring(0, 8)}...`, error);
       lastError = error;
@@ -224,7 +238,21 @@ export async function generateJSON(prompt: string, systemInstruction?: string) {
 
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content;
-      return content ? JSON.parse(content) : null;
+      if (!content) return null;
+      
+      let cleanContent = content.trim();
+      if (cleanContent.startsWith('```json')) {
+        cleanContent = cleanContent.replace(/^```json\n?/, '').replace(/\n?```$/, '');
+      } else if (cleanContent.startsWith('```')) {
+        cleanContent = cleanContent.replace(/^```\n?/, '').replace(/\n?```$/, '');
+      }
+
+      try {
+        return JSON.parse(cleanContent);
+      } catch (parseError) {
+        console.error("Failed to parse JSON. Raw content:", cleanContent);
+        throw new Error(`JSON Parse Error: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
+      }
     } catch (error) {
       lastError = error;
       continue;

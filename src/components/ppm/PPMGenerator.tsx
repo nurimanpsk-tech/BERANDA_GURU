@@ -156,13 +156,15 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
       if (user) {
         const { data: curriculumData, error: curriculumError } = await supabase
           .from('curriculum_entries')
-          .select('*')
-          .eq('user_id', user.id);
+          .select('*');
         
         if (!curriculumError && curriculumData && curriculumData.length > 0) {
           curriculumContext = curriculumData.map((e: any) => 
             `Elemen: ${e.elemen}, Sub-Elemen: ${e.sub_elemen}, TP: ${e.tp}, ATP: ${e.atp}, Indikator: ${e.indikator}`
           ).join('\n');
+          console.log(`Berhasil memuat ${curriculumData.length} baris data kurikulum.`);
+        } else {
+          console.warn('Data kurikulum kosong atau gagal dimuat:', curriculumError);
         }
       }
 
@@ -194,9 +196,9 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
       setGenerationStatus('Menyimpan ke Cloud...');
       await handleSaveToSupabase(fullData);
       setGenerationStatus('');
-    } catch (err) {
-      console.error(err);
-      setError('Gagal menghasilkan PPM. Silakan coba lagi.');
+    } catch (err: any) {
+      console.error('Error generating PPM:', err);
+      setError(`Gagal menghasilkan PPM: ${err.message || String(err)}. Silakan coba lagi.`);
       setGenerationStatus('');
     } finally {
       setLoading(false);
@@ -505,9 +507,9 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
 
                   <section>
                     <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-400 mb-4 border-b border-stone-100 pb-2">Asesmen Awal</h4>
-                    <p className="text-stone-600 mb-4 leading-relaxed">{ppmData.asesmenAwal.deskripsi}</p>
+                    <p className="text-stone-600 mb-4 leading-relaxed">{ppmData.asesmenAwal?.deskripsi}</p>
                     <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {ppmData.asesmenAwal.poinPoin.map((p, i) => (
+                      {Array.isArray(ppmData.asesmenAwal?.poinPoin) && ppmData.asesmenAwal.poinPoin.map((p, i) => (
                         <li key={i} className="flex items-start gap-2 text-sm text-stone-600">
                           <span className="text-emerald-500 mt-1">•</span>
                           {p}
@@ -519,7 +521,7 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
                   <section>
                     <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-400 mb-4 border-b border-stone-100 pb-2">Tujuan Pembelajaran</h4>
                     <ul className="space-y-2">
-                      {ppmData.desainPembelajaran.tujuanPembelajaran.map((t, i) => (
+                      {Array.isArray(ppmData.desainPembelajaran?.tujuanPembelajaran) && ppmData.desainPembelajaran.tujuanPembelajaran.map((t, i) => (
                         <li key={i} className="flex items-start gap-3 bg-stone-50 p-3 rounded-xl text-sm text-stone-700">
                           <span className="w-6 h-6 rounded-full bg-white border border-stone-200 flex items-center justify-center text-[10px] font-bold shrink-0">{i + 1}</span>
                           {t}

@@ -177,24 +177,6 @@ export default function Home({
           action: () => onNavigate('curriculum')
         },
         {
-          id: 'users',
-          title: 'Daftar Pengguna',
-          description: 'Pantau siapa saja yang mendaftar dan aktif di sistem.',
-          icon: <Users size={32} className="text-emerald-600" />,
-          color: 'bg-emerald-50 hover:bg-emerald-100 border-emerald-200',
-          textColor: 'text-emerald-900',
-          action: () => onNavigate('users')
-        },
-        {
-          id: 'system-monitor',
-          title: 'Monitor Sistem',
-          description: 'Pantau CPU, RAM, Storage, dan kuota API secara real-time.',
-          icon: <Activity size={32} className="text-amber-600" />,
-          color: 'bg-amber-50 hover:bg-amber-100 border-amber-200',
-          textColor: 'text-amber-900',
-          action: () => onNavigate('system-monitor')
-        },
-        {
           id: 'pengaturan',
           title: 'Pengaturan',
           description: 'Kelola profil, keamanan, dan preferensi aplikasi Anda.',

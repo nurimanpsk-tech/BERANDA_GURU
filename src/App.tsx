@@ -15,8 +15,6 @@ import ClassManager from './components/kelas/ClassManager';
 import SchoolManager from './components/settings/SchoolManager';
 import AnnouncementGenerator from './components/announcement/AnnouncementGenerator';
 import CurriculumManager from './components/admin/CurriculumManager';
-import UserManager from './components/admin/UserManager';
-import SystemMonitor from './components/admin/SystemMonitor';
 import AbsensiManager from './components/absensi/AbsensiManager';
 import AbsensiSiswa from './components/absensi/AbsensiSiswa';
 import AbsensiGuru from './components/absensi/AbsensiGuru';
@@ -307,12 +305,6 @@ export default function App() {
       )}
       {currentPage === 'curriculum' && (
         <CurriculumManager onBack={() => navigateTo('home')} user={user} profile={profile} />
-      )}
-      {currentPage === 'users' && (
-        <UserManager onBack={navigateBackToAdmin} currentUser={user} />
-      )}
-      {currentPage === 'system-monitor' && (
-        <SystemMonitor onBack={navigateBackToAdmin} />
       )}
       {currentPage === 'ppm' && (
         <PPMMenu 
