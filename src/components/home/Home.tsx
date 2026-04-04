@@ -169,12 +169,30 @@ export default function Home({
     ? [
         {
           id: 'curriculum',
-          title: 'Database CP',
+          title: 'Kelola Capaian Pembelajaran',
           description: 'Input daftar TP dan IKTP dari Pengawas untuk referensi AI.',
           icon: <Database size={32} className="text-purple-600" />,
           color: 'bg-purple-50 hover:bg-purple-100 border-purple-200',
           textColor: 'text-purple-900',
           action: () => onNavigate('curriculum')
+        },
+        {
+          id: 'users',
+          title: 'Daftar Pengguna',
+          description: 'Pantau siapa saja yang mendaftar dan aktif di sistem.',
+          icon: <Users size={32} className="text-emerald-600" />,
+          color: 'bg-emerald-50 hover:bg-emerald-100 border-emerald-200',
+          textColor: 'text-emerald-900',
+          action: () => onNavigate('users')
+        },
+        {
+          id: 'system-monitor',
+          title: 'Monitor Sistem',
+          description: 'Pantau CPU, RAM, Storage, dan kuota API secara real-time.',
+          icon: <Activity size={32} className="text-amber-600" />,
+          color: 'bg-amber-50 hover:bg-amber-100 border-amber-200',
+          textColor: 'text-amber-900',
+          action: () => onNavigate('system-monitor')
         },
         {
           id: 'pengaturan',
@@ -269,13 +287,13 @@ export default function Home({
           action: () => onNavigate('uang-kas')
         },
         {
-          id: 'curriculum',
+          id: 'database-cp',
           title: 'Database CP',
-          description: 'Lihat dan pelajari kurikulum sekolah.',
-          icon: <BookText size={32} className="text-purple-600" />,
+          description: 'Lihat daftar Capaian Pembelajaran dari Pengawas.',
+          icon: <Database size={32} className="text-purple-600" />,
           color: 'bg-purple-50 hover:bg-purple-100 border-purple-200',
           textColor: 'text-purple-900',
-          action: () => onNavigate('curriculum')
+          action: () => onNavigate('database-cp')
         },
         {
           id: 'pengaturan',

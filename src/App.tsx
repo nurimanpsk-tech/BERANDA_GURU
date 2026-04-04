@@ -15,6 +15,9 @@ import ClassManager from './components/kelas/ClassManager';
 import SchoolManager from './components/settings/SchoolManager';
 import AnnouncementGenerator from './components/announcement/AnnouncementGenerator';
 import CurriculumManager from './components/admin/CurriculumManager';
+import CurriculumViewer from './components/curriculum/CurriculumViewer';
+import UserManager from './components/admin/UserManager';
+import SystemMonitor from './components/admin/SystemMonitor';
 import AbsensiManager from './components/absensi/AbsensiManager';
 import AbsensiSiswa from './components/absensi/AbsensiSiswa';
 import AbsensiGuru from './components/absensi/AbsensiGuru';
@@ -304,7 +307,13 @@ export default function App() {
         />
       )}
       {currentPage === 'curriculum' && (
-        <CurriculumManager onBack={() => navigateTo('home')} user={user} profile={profile} />
+        <CurriculumManager onBack={navigateBackToAdmin} user={user} />
+      )}
+      {currentPage === 'users' && (
+        <UserManager onBack={navigateBackToAdmin} currentUser={user} />
+      )}
+      {currentPage === 'system-monitor' && (
+        <SystemMonitor onBack={navigateBackToAdmin} />
       )}
       {currentPage === 'ppm' && (
         <PPMMenu 
@@ -443,6 +452,9 @@ export default function App() {
             </div>
           </div>
         </div>
+      )}
+      {currentPage === 'database-cp' && (
+        <CurriculumViewer onBack={() => navigateTo('home')} />
       )}
       {currentPage === 'buku-induk' && (
         <div className="min-h-screen bg-[#F5F2ED] text-[#1A1A1A] font-sans p-4 md:p-8">

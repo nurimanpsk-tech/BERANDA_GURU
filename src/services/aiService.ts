@@ -1,7 +1,7 @@
 const GITHUB_TOKENS = (process.env.GITHUB_TOKENS || "").split(/[,\s;]+/).filter(t => t.trim() !== "");
 
 export async function generatePPM(prompt: string, curriculumContext?: string, hariTanggal?: string) {
-  const model = "gpt-4o";
+  const model = "gpt-4o-mini";
   const endpoint = "https://models.inference.ai.azure.com/chat/completions";
 
   const systemInstruction = `Anda adalah pakar kurikulum PAUD/TK di Indonesia yang sangat PATUH pada data.
@@ -158,7 +158,7 @@ export async function generatePPM(prompt: string, curriculumContext?: string, ha
 }
 
 export async function generateText(prompt: string) {
-  const model = "gpt-4o";
+  const model = "gpt-4o-mini";
   const endpoint = "https://models.inference.ai.azure.com/chat/completions";
 
   if (GITHUB_TOKENS.length === 0) {
@@ -202,7 +202,7 @@ export async function generateText(prompt: string) {
 }
 
 export async function generateJSON(prompt: string, systemInstruction?: string) {
-  const model = "gpt-4o";
+  const model = "gpt-4o-mini";
   const endpoint = "https://models.inference.ai.azure.com/chat/completions";
 
   if (GITHUB_TOKENS.length === 0) {

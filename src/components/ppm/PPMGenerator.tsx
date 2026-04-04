@@ -159,10 +159,12 @@ export default function PPMGenerator({ onBack, onGenerate, initialData, user }: 
           .select('*');
         
         if (!curriculumError && curriculumData && curriculumData.length > 0) {
-          curriculumContext = curriculumData.map((e: any) => 
-            `Elemen: ${e.elemen}, Sub-Elemen: ${e.sub_elemen}, TP: ${e.tp}, ATP: ${e.atp}, Indikator: ${e.indikator}`
+          // Hanya ambil Elemen dan TP untuk menghemat token, batasi maksimal 40 baris
+          const limitedData = curriculumData.slice(0, 40);
+          curriculumContext = limitedData.map((e: any) => 
+            `Elemen: ${e.elemen}, TP: ${e.tp}`
           ).join('\n');
-          console.log(`Berhasil memuat ${curriculumData.length} baris data kurikulum.`);
+          console.log(`Berhasil memuat ${limitedData.length} baris data kurikulum (dibatasi untuk menghemat token).`);
         } else {
           console.warn('Data kurikulum kosong atau gagal dimuat:', curriculumError);
         }
